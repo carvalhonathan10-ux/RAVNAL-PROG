@@ -1,0 +1,2752 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Coach Prog</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Coach Prog"/>
+<meta name="theme-color" content="#111111"/>
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAACRklEQVR4nO3cwQ2CQBBAUTE2sI1ZgFfr8moBNqg1YJSV73t3kg38TMKEsIwxngeIOM4+AHySoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpJxmH2Ct8/22+prH5fqFk+xT/f6Z0KQImhRBkyJoUgRNiqBJETQp0/fQ7+xF2dbaZzRzb21CkyJoUgRNiqBJETQp07ccW7BJ+R8mNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAialL/4OGlPv7L6tvqHWiY0KYImRdCkCJoUQZMyfcuxdgNRf0v/RXvaEpnQpAiaFEGTImhSBE2KoEkRNCnLGOM5+xDwKSY0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJqUF+5EF2ZMjlF/AAAAAElFTkSuQmCC"/>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAACRklEQVR4nO3cwQ2CQBBAUTE2sI1ZgFfr8moBNqg1YJSV73t3kg38TMKEsIwxngeIOM4+AHySoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpJxmH2Ct8/22+prH5fqFk+xT/f6Z0KQImhRBkyJoUgRNiqBJETQp0/fQ7+xF2dbaZzRzb21CkyJoUgRNiqBJETQp07ccW7BJ+R8mNCmCJkXQpAiaFEGTImhSBE2KoEkRNCmCJkXQpAialL/4OGlPv7L6tvqHWiY0KYImRdCkCJoUQZMyfcuxdgNRf0v/RXvaEpnQpAiaFEGTImhSBE2KoEkRNCnLGOM5+xDwKSY0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJoUQZMiaFIETYqgSRE0KYImRdCkCJqUF+5EF2ZMjlF/AAAAAElFTkSuQmCC"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?deps=react@18.3.1",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0?deps=react@18.3.1",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
+</script>
+<style>html,body{margin:0;padding:0;-webkit-tap-highlight-color:transparent;}</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript>Active JavaScript pour utiliser Coach Prog.</noscript>
+<script type="text/babel" data-type="module" data-presets="react">
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { createClient } from "@supabase/supabase-js";
+import { useState, useRef, useEffect } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Plus,
+  MoreHorizontal,
+  Download,
+  Copy,
+  Trash2,
+  Bookmark,
+  Pencil,
+  X,
+  Check,
+  GripVertical,
+  RotateCcw,
+  ChevronDown,
+  Search,
+  Monitor,
+  Upload,
+} from "lucide-react";
+
+const SUPABASE_URL = "https://xfltsucwsdpccwnomgnt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_dGJ5JZyOQ1On-rwtDmyQbw_gDQhqjif";
+const supa = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const DB = {
+  async _uid() {
+    const { data } = await supa.auth.getUser();
+    return data && data.user ? data.user.id : null;
+  },
+  async load() {
+    const uid = await this._uid();
+    if (!uid) return null;
+    const { data, error } = await supa
+      .from("app_state").select("data").eq("user_id", uid).maybeSingle();
+    if (error || !data) return null;
+    return { value: JSON.stringify(data.data) };
+  },
+  async save(a, b) {
+    const value = b !== undefined ? b : a;
+    const uid = await this._uid();
+    if (!uid) return;
+    await supa.from("app_state").upsert({
+      user_id: uid,
+      data: JSON.parse(value),
+      updated_at: new Date().toISOString(),
+    });
+  },
+};
+
+
+
+// ---- Palette de couleurs des blocs (style Strivee) ----
+const COLORS = [
+  { name: "Pêche", bg: "#FCE7D8", bar: "#E8A87C" },
+  { name: "Bleu", bg: "#DCEBF7", bar: "#7CA8D8" },
+  { name: "Violet", bg: "#E7E0F5", bar: "#A78CD8" },
+  { name: "Vert", bg: "#DCF0E3", bar: "#7CC894" },
+  { name: "Rose", bg: "#F8DEE5", bar: "#D87C9A" },
+  { name: "Jaune", bg: "#FBF1D2", bar: "#D8C07C" },
+  { name: "Gris", bg: "#ECECEC", bar: "#B0B0B0" },
+  { name: "Sarcelle", bg: "#D5EEEC", bar: "#5FB7AE" },
+];
+
+// ---- Presets de type de bloc (préremplissent titre + couleur) ----
+const PRESETS = [
+  { label: "Échauffement", color: 0 },
+  { label: "Skill", color: 1 },
+  { label: "Force", color: 2 },
+  { label: "WOD", color: 3 },
+  { label: "ENDUR'OX", color: 4 },
+  { label: "MUSCU", color: 7 },
+  { label: "Finisher", color: 5 },
+  { label: "Accessoire", color: 6 },
+];
+
+const DAYS_FR = [
+  "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
+];
+const MONTHS_FR = [
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+];
+
+// ---- Helpers de date ----
+function mondayOf(offsetWeeks) {
+  const d = new Date();
+  const day = (d.getDay() + 6) % 7; // 0 = lundi
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - day + offsetWeeks * 7);
+  return d;
+}
+function keyOf(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+function addDays(date, n) {
+  const c = new Date(date);
+  c.setDate(c.getDate() + n);
+  return c;
+}
+function mondayOfDate(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  return d;
+}
+function keyToDate(k) {
+  const [y, m, d] = k.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function weekKeyOf(date) {
+  return keyOf(mondayOfDate(date));
+}
+
+let uid = 1;
+const newId = () => `b${uid++}`;
+
+// ---- Mémoire persistante ----
+const STORAGE_KEY = "planning:v1";
+const hasStorage = true;
+function bumpUid(blocksByDate = {}, templates = []) {
+  let max = 0;
+  const scan = (arr) =>
+    (arr || []).forEach((b) => {
+      const m = /^b(\d+)$/.exec(b.id || "");
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    });
+  Object.values(blocksByDate).forEach(scan);
+  scan(templates);
+  uid = max + 1;
+}
+
+function bumpUidPrograms(programData = {}, templates = []) {
+  let max = 0;
+  const scan = (arr) =>
+    (arr || []).forEach((b) => {
+      const m = /^b(\d+)$/.exec(b.id || "");
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    });
+  Object.values(programData).forEach((p) =>
+    Object.values((p && p.blocks) || {}).forEach(scan)
+  );
+  scan(templates);
+  uid = max + 1;
+}
+
+const newProgramId = () => "p" + Math.random().toString(36).slice(2, 8);
+const newCycleId = () => "c" + Math.random().toString(36).slice(2, 8);
+
+// ---- Benchmarks CrossFit (Girls / Heroes) — descriptions factuelles ----
+const BENCHMARKS = [
+  // ----- GIRLS -----
+  { id: "amanda", group: "Girls", name: "Amanda", content: "For Time\n9-7-5\nMuscle-ups\nSquat Snatches 61/43 kg" },
+  { id: "andi", group: "Girls", name: "Andi", content: "For Time\n100 Hang Power Snatches\n100 Push Press\n100 Sumo Deadlift High-Pull\n100 Front Squats\n29/20 kg" },
+  { id: "angie", group: "Girls", name: "Angie", content: "For Time\n100 Pull-ups\n100 Push-ups\n100 Sit-ups\n100 Air Squats" },
+  { id: "annie", group: "Girls", name: "Annie", content: "For Time\n50-40-30-20-10\nDouble-unders\nSit-ups" },
+  { id: "barbara", group: "Girls", name: "Barbara", content: "5 rounds For Time (3 min repos)\n20 Pull-ups\n30 Push-ups\n40 Sit-ups\n50 Air Squats" },
+  { id: "chelsea", group: "Girls", name: "Chelsea", content: "EMOM 30 min\n5 Pull-ups\n10 Push-ups\n15 Air Squats" },
+  { id: "cindy", group: "Girls", name: "Cindy", content: "AMRAP 20 min\n5 Pull-ups\n10 Push-ups\n15 Air Squats" },
+  { id: "diane", group: "Girls", name: "Diane", content: "For Time\n21-15-9\nDeadlifts 102/70 kg\nHandstand Push-ups" },
+  { id: "elizabeth", group: "Girls", name: "Elizabeth", content: "For Time\n21-15-9\nSquat Cleans 61/43 kg\nRing Dips" },
+  { id: "eva", group: "Girls", name: "Eva", content: "5 rounds For Time\n800 m Run\n30 KB Swings 32/24 kg\n30 Pull-ups" },
+  { id: "fran", group: "Girls", name: "Fran", content: "For Time\n21-15-9\nThrusters 43/30 kg\nPull-ups" },
+  { id: "grace", group: "Girls", name: "Grace", content: "For Time\n30 Clean & Jerks 61/43 kg" },
+  { id: "helen", group: "Girls", name: "Helen", content: "3 rounds For Time\n400 m Run\n21 KB Swings 24/16 kg\n12 Pull-ups" },
+  { id: "isabel", group: "Girls", name: "Isabel", content: "For Time\n30 Snatches 61/43 kg" },
+  { id: "jackie", group: "Girls", name: "Jackie", content: "For Time\n1000 m Row\n50 Thrusters 20 kg\n30 Pull-ups" },
+  { id: "karen", group: "Girls", name: "Karen", content: "For Time\n150 Wall Balls 9/6 kg" },
+  { id: "kelly", group: "Girls", name: "Kelly", content: "5 rounds For Time\n400 m Run\n30 Box Jumps 60/50 cm\n30 Wall Balls 9/6 kg" },
+  { id: "linda", group: "Girls", name: "Linda", content: "10-9-8-7-6-5-4-3-2-1 For Time\nDeadlift 1,5x PdC\nBench Press 1x PdC\nClean 0,75x PdC" },
+  { id: "lynne", group: "Girls", name: "Lynne", content: "5 rounds — max reps (sans temps)\nBench Press au poids de corps\nPull-ups" },
+  { id: "mary", group: "Girls", name: "Mary", content: "AMRAP 20 min\n5 Handstand Push-ups\n10 Pistols (alterné)\n15 Pull-ups" },
+  { id: "nancy", group: "Girls", name: "Nancy", content: "5 rounds For Time\n400 m Run\n15 Overhead Squats 43/30 kg" },
+  { id: "nicole", group: "Girls", name: "Nicole", content: "AMRAP 20 min\n400 m Run\nMax Pull-ups (noter les reps par tour)" },
+  // ----- HEROES -----
+  { id: "abbate", group: "Heroes", name: "Abbate", content: "For Time\n1 mile Run\n21 Clean & Jerks 70/47,5 kg\n800 m Run\n21 Clean & Jerks 70/47,5 kg\n1 mile Run" },
+  { id: "badger", group: "Heroes", name: "Badger", content: "3 rounds For Time\n30 Squat Cleans 43 kg\n30 Pull-ups\n800 m Run" },
+  { id: "blake", group: "Heroes", name: "Blake", content: "4 rounds For Time\n30 m Walking Lunge (plaque 20/14 kg overhead)\n30 Box Jumps 60 cm\n20 Wall Balls 9 kg\n10 Handstand Push-ups" },
+  { id: "bradley", group: "Heroes", name: "Bradley", content: "10 rounds For Time\n100 m Sprint\n10 Pull-ups\n100 m Sprint\n10 Burpees\nRepos 30 s" },
+  { id: "bradshaw", group: "Heroes", name: "Bradshaw", content: "10 rounds For Time\n3 Handstand Push-ups\n6 Deadlifts 102 kg\n12 Pull-ups\n24 Double-unders" },
+  { id: "brenton", group: "Heroes", name: "Brenton", content: "5 rounds For Time\nBear Crawl 30 m\nBroad Jump 30 m\n(3 burpees tous les 5 sauts) — gilet 9 kg" },
+  { id: "bulger", group: "Heroes", name: "Bulger", content: "10 rounds For Time\n150 m Run\n7 Chest-to-bar Pull-ups\n7 Front Squats 61 kg\n7 Handstand Push-ups" },
+  { id: "chad", group: "Heroes", name: "Chad", content: "For Time\n1000 Box Step-ups 50 cm\n(sac à dos 20/14 kg)" },
+  { id: "coe", group: "Heroes", name: "Coe", content: "10 rounds For Time\n10 Thrusters 43 kg\n10 Ring Push-ups" },
+  { id: "dt", group: "Heroes", name: "DT", content: "5 rounds For Time\n12 Deadlifts\n9 Hang Power Cleans\n6 Push Jerks\n70/47,5 kg" },
+  { id: "daniel", group: "Heroes", name: "Daniel", content: "For Time\n50 Pull-ups\n400 m Run\n21 Thrusters 43 kg\n800 m Run\n21 Thrusters 43 kg\n400 m Run\n50 Pull-ups" },
+  { id: "danny", group: "Heroes", name: "Danny", content: "AMRAP 20 min\n30 Box Jumps 60 cm\n20 Push Press 52 kg\n30 Pull-ups" },
+  { id: "donny", group: "Heroes", name: "Donny", content: "21-15-9-9-15-21 For Time\nDeadlifts 70 kg\nBurpees" },
+  { id: "drew", group: "Heroes", name: "Drew", content: "3 rounds For Time\n37/25 cal Row\n25 Wall Balls 9/6 kg\n16 DB Snatches 22,5/16 kg\n2 Back Squats 142/102 kg\n1 Deadlift 184/142 kg" },
+  { id: "glen", group: "Heroes", name: "Glen", content: "For Time\n30 Clean & Jerks 61 kg\n1 mile Run\n10 Rope Climbs (4,5 m)\n1 mile Run\n100 Burpees" },
+  { id: "hammer", group: "Heroes", name: "Hammer", content: "5 rounds (chacun chronométré)\n5 Power Cleans 61 kg\n10 Front Squats 61 kg\n5 Jerks 61 kg\n20 Pull-ups\nRepos 90 s" },
+  { id: "holbrook", group: "Heroes", name: "Holbrook", content: "10 rounds (chacun chronométré)\n5 Thrusters 52 kg\n10 Pull-ups\n100 m Sprint\nRepos 1 min" },
+  { id: "holleyman", group: "Heroes", name: "Holleyman", content: "30 rounds For Time\n5 Wall Balls 9 kg\n3 Handstand Push-ups\n1 Power Clean 102 kg" },
+  { id: "hotshots19", group: "Heroes", name: "Hotshots 19", content: "6 rounds For Time\n30 Air Squats\n19 Power Cleans 61/43 kg\n7 Strict Pull-ups\n400 m Run" },
+  { id: "jt", group: "Heroes", name: "J.T.", content: "For Time\n21-15-9\nHandstand Push-ups\nRing Dips\nPush-ups" },
+  { id: "jack", group: "Heroes", name: "Jack", content: "AMRAP 20 min\n10 Push Press 52 kg\n10 KB Swings 24 kg\n10 Box Jumps 60 cm" },
+  { id: "jerry", group: "Heroes", name: "Jerry", content: "For Time\n1 mile Run\n2 km Row\n1 mile Run" },
+  { id: "josh", group: "Heroes", name: "Josh", content: "For Time\n21 Overhead Squats 43 kg\n42 Pull-ups\n15 OHS 43 kg\n30 Pull-ups\n9 OHS 43 kg\n18 Pull-ups" },
+  { id: "klepto", group: "Heroes", name: "Klepto", content: "4 rounds For Time\n27 Box Jumps 60 cm\n20 Burpees\n11 Squat Cleans 65 kg" },
+  { id: "loredo", group: "Heroes", name: "Loredo", content: "6 rounds For Time\n24 Air Squats\n24 Push-ups\n24 Walking Lunges\n400 m Run" },
+  { id: "lumberjack20", group: "Heroes", name: "Lumberjack 20", content: "For Time\n20 Deadlifts 125 kg\n400 m Run\n20 KB Swings 32 kg\n400 m Run\n20 Overhead Squats 52 kg\n400 m Run\n20 Burpees\n400 m Run\n20 Chest-to-bar Pull-ups\n400 m Run\n20 Box Jumps 60 cm\n400 m Run\n20 DB Squat Cleans 20 kg\n400 m Run" },
+  { id: "manion", group: "Heroes", name: "Manion", content: "7 rounds For Time\n400 m Run\n29 Back Squats 61 kg" },
+  { id: "mcghee", group: "Heroes", name: "McGhee", content: "AMRAP 30 min\n5 Deadlifts 125 kg\n13 Push-ups\n9 Box Jumps 60 cm" },
+  { id: "michael", group: "Heroes", name: "Michael", content: "3 rounds For Time\n800 m Run\n50 Back Extensions\n50 Sit-ups" },
+  { id: "moore", group: "Heroes", name: "Moore", content: "AMRAP 20 min\n1 Rope Climb (4,5 m)\n400 m Run\nMax Handstand Push-ups" },
+  { id: "morrison", group: "Heroes", name: "Morrison", content: "For Time\n50-40-30-20-10\nWall Balls 9 kg\nBox Jumps 60 cm\nKB Swings 24 kg" },
+  { id: "murph", group: "Heroes", name: "Murph", content: "For Time (gilet 9/6 kg)\n1 mile Run\n100 Pull-ups\n200 Push-ups\n300 Air Squats\n1 mile Run" },
+  { id: "nate", group: "Heroes", name: "Nate", content: "AMRAP 20 min\n2 Muscle-ups\n4 Handstand Push-ups\n8 KB Swings 32 kg" },
+  { id: "nutts", group: "Heroes", name: "Nutts", content: "For Time\n10 Handstand Push-ups\n15 Deadlifts 113 kg\n25 Box Jumps 75 cm\n50 Pull-ups\n100 Wall Balls 9 kg\n200 Double-unders\n400 m Run (plaque 20 kg)" },
+  { id: "omar", group: "Heroes", name: "Omar", content: "For Time\n10 Thrusters 43 kg\n15 Bar-facing Burpees\n20 Thrusters\n25 Burpees\n30 Thrusters\n35 Burpees" },
+  { id: "rahoi", group: "Heroes", name: "Rahoi", content: "AMRAP 12 min\n12 Box Jumps 60 cm\n6 Thrusters 43 kg\n6 Bar-facing Burpees" },
+  { id: "randy", group: "Heroes", name: "Randy", content: "For Time\n75 Power Snatches 34 kg" },
+  { id: "rankel", group: "Heroes", name: "Rankel", content: "AMRAP 20 min\n6 Deadlifts 102 kg\n7 Burpee Pull-ups\n10 KB Swings 32 kg\n200 m Run" },
+  { id: "roy", group: "Heroes", name: "Roy", content: "5 rounds For Time\n15 Deadlifts 102 kg\n20 Box Jumps 60 cm\n25 Pull-ups" },
+  { id: "ryan", group: "Heroes", name: "Ryan", content: "5 rounds For Time\n7 Muscle-ups\n21 Burpees" },
+  { id: "theseven", group: "Heroes", name: "The Seven", content: "7 rounds For Time\n7 Handstand Push-ups\n7 Thrusters 61 kg\n7 Knees-to-elbows\n7 Deadlifts 113 kg\n7 Burpees\n7 KB Swings 32 kg\n7 Pull-ups" },
+  { id: "tommyv", group: "Heroes", name: "Tommy V", content: "For Time\n21 Thrusters 52 kg\n12 Rope Climbs (4,5 m)\n15 Thrusters 52 kg\n9 Rope Climbs\n9 Thrusters 52 kg\n6 Rope Climbs" },
+  { id: "tyler", group: "Heroes", name: "Tyler", content: "5 rounds For Time\n7 Muscle-ups\n21 Sumo Deadlift High-Pull 43 kg" },
+  { id: "white", group: "Heroes", name: "White", content: "5 rounds For Time\n3 Rope Climbs (4,5 m)\n10 Toes-to-bar\n21 Walking Lunges (plaque 20 kg)\n400 m Run" },
+  { id: "whitten", group: "Heroes", name: "Whitten", content: "5 rounds For Time\n22 KB Swings 32 kg\n22 Box Jumps 60 cm\n400 m Run\n22 Burpees\n22 Wall Balls 9 kg" },
+  { id: "wittman", group: "Heroes", name: "Wittman", content: "7 rounds For Time\n15 KB Swings 24 kg\n15 Power Cleans 43 kg\n15 Box Jumps 60 cm" },
+  { id: "wood", group: "Heroes", name: "Wood", content: "5 rounds For Time\n400 m Run\n10 Burpee Box Jumps 60 cm\n10 Sumo Deadlift High-Pull 43 kg\n10 Thrusters 43 kg\nRepos 1 min" },
+  { id: "zeus", group: "Heroes", name: "Zeus", content: "3 rounds For Time\n30 Wall Balls 9 kg\n30 Sumo Deadlift High-Pull 34 kg\n30 Box Jumps 50 cm\n30 Push Press 34 kg\n30 cal Row\n10 Burpees (deadlift au poids de corps)" },
+];
+
+// ---- Catalogues (éditables) — chacun son menu déroulant ----
+// item = string (exercice) OU { name, content } (méthode avec canevas)
+const CATALOG_DISCIPLINES = [
+  {
+    cat: "CrossFit",
+    items: [
+      "Squat — Air Squat", "Squat — Front Squat", "Squat — Back Squat", "Squat — Overhead Squat",
+      "Squat — Goblet Squat", "Squat — Pistol Squat", "Squat — Bulgarian Split Squat",
+      "Press — Strict Press", "Press — Push Press", "Press — Push Jerk", "Press — Split Jerk",
+      "Press — Bench Press",
+      "Hinge — Deadlift", "Hinge — Romanian Deadlift", "Hinge — Sumo Deadlift", "Hinge — SDHP",
+      "Hinge — Good Morning", "Hinge — Hip Thrust", "Hinge — Bent-Over Row", "Hinge — Pendlay Row",
+      "Snatch — Snatch", "Snatch — Power Snatch", "Snatch — Squat Snatch", "Snatch — Hang Snatch",
+      "Snatch — Hang Power Snatch", "Snatch — DB Snatch",
+      "Clean — Clean", "Clean — Power Clean", "Clean — Squat Clean", "Clean — Hang Clean",
+      "Clean — Hang Power Clean", "Clean — DB Clean",
+      "Jerk — Clean & Jerk", "Jerk — Thruster", "Jerk — Cluster", "Jerk — Wall Ball",
+      "Jerk — DB Thruster", "Jerk — Medicine Ball Clean",
+      "Gym tirage — Ring Row", "Gym tirage — Strict Pull-up", "Gym tirage — Kipping Pull-up",
+      "Gym tirage — Butterfly Pull-up", "Gym tirage — Chest-to-Bar", "Gym tirage — Bar Muscle-up",
+      "Gym tirage — Ring Muscle-up", "Gym tirage — Weighted Pull-up", "Gym tirage — Rope Climb",
+      "Gym tirage — Legless Rope Climb", "Gym tirage — L-sit Pull-up",
+      "Gym poussée — Push-up", "Gym poussée — Hand-Release Push-up", "Gym poussée — Diamond Push-up",
+      "Gym poussée — Dip", "Gym poussée — Ring Dip", "Gym poussée — Strict Ring Dip",
+      "Gym poussée — HSPU", "Gym poussée — Strict HSPU", "Gym poussée — Kipping HSPU",
+      "Gym poussée — Deficit HSPU",
+      "Core — Toes-to-Bar", "Core — Knees-to-Elbow", "Core — GHD Sit-up", "Core — V-up",
+      "Core — Sit-up", "Core — L-sit", "Core — Hollow Hold", "Core — Plank Hold",
+      "Core — Handstand Walk", "Core — Handstand Hold", "Core — Dead Hang",
+      "Cardio — Course", "Cardio — Sprint", "Cardio — Rowing", "Cardio — Bike Erg",
+      "Cardio — Assault Bike", "Cardio — SkiErg", "Cardio — Shuttle Run",
+      "Cardio PdC — Burpee", "Cardio PdC — Bar-Facing Burpee", "Cardio PdC — Burpee Box Jump Over",
+      "Cardio PdC — Box Jump", "Cardio PdC — Box Jump Over", "Cardio PdC — Box Step-up",
+      "Cardio PdC — Double-Under", "Cardio PdC — Single-Under", "Cardio PdC — Jumping Jack",
+      "Cardio PdC — Mountain Climber", "Cardio PdC — High Knees", "Cardio PdC — Broad Jump",
+      "Cardio PdC — Burpee Broad Jump",
+      "Porté — Farmers Carry", "Porté — Sandbag Carry", "Porté — Sandbag Lunges", "Porté — Sled Push",
+      "Porté — Sled Pull", "Porté — Yoke Carry",
+      "KB — KB Swing", "KB — American KB Swing", "KB — Russian KB Swing",
+    ],
+  },
+  {
+    cat: "Musculation",
+    items: [
+      "Développé couché", "Développé incliné", "Développé décliné", "Développé militaire",
+      "Développé haltères", "Squat", "Squat avant", "Hack squat", "Presse à cuisses", "Fentes",
+      "Soulevé de terre", "Soulevé de terre roumain", "Hip thrust", "Tirage horizontal",
+      "Tirage vertical", "Rowing barre", "Rowing haltère", "Traction lestée", "Curl biceps",
+      "Curl marteau", "Extension triceps", "Dips", "Élévations latérales", "Oiseau (deltoïde post.)",
+      "Shrugs", "Leg curl", "Leg extension", "Mollets debout", "Crunch", "Gainage", "Pull-over",
+      "Écarté couché",
+    ],
+  },
+  {
+    cat: "Stretching",
+    items: [
+      "Étirement ischios debout", "Étirement quadriceps debout", "Étirement fessiers (figure 4)",
+      "Étirement adducteurs (papillon)", "Étirement mollets au mur", "Étirement fléchisseurs de hanche",
+      "Étirement pectoraux au mur", "Étirement dorsaux (lat)", "Étirement triceps",
+      "Étirement épaules (cross-body)", "Étirement cou", "Étirement poignets", "Étirement piriforme",
+      "Étirement psoas", "Étirement bandelette IT", "Pince assise", "Grand écart facial", "Grand écart",
+      "Étirement thoracique sur rouleau",
+    ],
+  },
+  {
+    cat: "Pilates",
+    items: [
+      "The Hundred", "Roll Up", "Roll Over", "Single Leg Circles", "Rolling Like a Ball",
+      "Single Leg Stretch", "Double Leg Stretch", "Scissors", "Spine Stretch Forward",
+      "Open Leg Rocker", "Saw", "Swan", "Single Leg Kick", "Side Kick", "Teaser", "Swimming",
+      "Leg Pull Front", "Seal", "Pelvic Curl", "Bridge", "Plank", "Side Plank", "Criss-Cross",
+    ],
+  },
+  {
+    cat: "Yoga",
+    items: [
+      "Chien tête en bas", "Chien tête en haut", "Planche", "Chaturanga", "Guerrier I",
+      "Guerrier II", "Guerrier III", "Triangle", "Demi-lune", "Arbre", "Chaise", "Cobra",
+      "Sphinx", "Sauterelle", "Pigeon", "Chameau", "Pont", "Posture de l'enfant", "Chat-Vache",
+      "Torsion assise", "Pince debout", "Fente basse", "Salutation au soleil", "Corbeau",
+      "Savasana",
+    ],
+  },
+];
+
+const CATALOG_MOBILITY = [
+  {
+    zone: "Hanches / Bassin",
+    items: [
+      "90/90", "0 to 90", "90/90 Hip Rotations", "Frog Stretch", "Active Frog", "Cossack Squat",
+      "Deep Squat Hold", "Pigeon actif", "Couch Stretch", "Hip CARs", "Hip Airplane",
+      "World's Greatest Stretch", "Fire Hydrant", "Lunge with Rotation", "Glute Bridge",
+      "Butterfly actif", "Adductor Rock",
+    ],
+  },
+  {
+    zone: "Épaules / Thoracique",
+    items: [
+      "Shoulder CARs", "Scapular CARs", "Active Pec Stretch", "Active Lat Stretch", "Prayer Stretch",
+      "Thread the Needle", "Thoracic Rotation", "Wall Slides", "Band Pass-through", "Sleeper Stretch",
+      "Bridge Reach", "Cat-Cow", "Sphinx", "Thoracic Extension (rouleau)", "Doorway Pec Stretch",
+    ],
+  },
+  {
+    zone: "Chevilles / Mollets",
+    items: [
+      "Ankle Mobilization (knee to wall)", "Ankle CARs", "Calf Stretch Down Dog", "Calf Stretch au mur",
+      "Alternating Ankle Rolls", "Eccentric Calf Raise", "Banded Ankle Distraction", "Toe/Heel Sit",
+      "Tibialis Raise",
+    ],
+  },
+  {
+    zone: "Dos / Lombaires",
+    items: [
+      "Cat-Cow", "McKenzie Extension (Cobra)", "Child's Pose", "Jefferson Curl", "Seated Spinal Twist",
+      "Bird-Dog", "Active Cobra", "Rotation lombaire (jambes côté à côté)", "Cossack Reach",
+    ],
+  },
+  {
+    zone: "Poignets / Cou",
+    items: [
+      "Wrist CARs", "Wrist Rocks (flexion/extension)", "Active Fingers Stretch", "Étirement avant-bras",
+      "Neck CARs", "Rotations cervicales", "Étirement élévateur de la scapula",
+    ],
+  },
+];
+
+const CATALOG_METHODS = [
+  {
+    fam: "Course à pied",
+    items: [
+      { name: "Endurance fondamentale", content: "Endurance fondamentale\n___ min en aisance respiratoire (zone 2, ~65-75% FCmax)" },
+      { name: "Endurance aérobie", content: "Endurance aérobie\n___ min allure modérée (zone 2-3)" },
+      { name: "Tempo", content: "Tempo run\n___ min à allure soutenue contrôlée (~80-85% FCmax)" },
+      { name: "Seuil", content: "Travail au seuil\n___ × ___ min au seuil / récup ___" },
+      { name: "Fartlek", content: "Fartlek\n___ × (___ vite / ___ lent) — jeu d'allures" },
+      { name: "VMA / anaérobie", content: "VMA\n___ × ___ s à 100-110% VMA / récup ___" },
+      { name: "Sprint", content: "Sprint\n___ × ___ m max / récup complète" },
+      { name: "Côtes", content: "Côtes\n___ × ___ s en montée / retour en récup" },
+      { name: "Footing récup", content: "Footing récupération\n___ min très facile (zone 1)" },
+    ],
+  },
+  {
+    fam: "Force",
+    items: [
+      { name: "5×5", content: "Force — 5×5 @ ___%\nRepos 2-3 min" },
+      { name: "3×3", content: "Force — 3×3 @ ___%\nRepos 3 min" },
+      { name: "5/3/1", content: "5/3/1 (Wendler)\nS1 : 5 @65% · S2 : 3 @75% · S3 : 1+ @85%" },
+      { name: "10×3", content: "Force — 10×3 @ ___%\nRepos 1-2 min" },
+      { name: "Pyramidal", content: "Pyramide\n12-10-8-6-4 (charge croissante)" },
+      { name: "Max effort", content: "Max effort\nMontée à 1RM / 1-3 RM du jour" },
+      { name: "Wave loading", content: "Wave loading\n3-2-1 / 3-2-1 (charge montante par vague)" },
+      { name: "EMOM force", content: "EMOM ___ min\n___ reps @ ___% à chaque minute" },
+    ],
+  },
+  {
+    fam: "Musculation",
+    items: [
+      { name: "Méthode bulgare", content: "Méthode bulgare\nAlternance lourd / léger sur le même mouvement (ex. 90% / 60%)" },
+      { name: "Cluster set", content: "Cluster set\nMini-séries (ex. 5×2) avec 15-20 s de repos intra-série" },
+      { name: "Drop set", content: "Drop set\nSérie jusqu'à l'échec puis baisse de charge sans repos" },
+      { name: "Rest-pause", content: "Rest-pause\nÉchec → 15 s repos → reprise, ×2-3" },
+      { name: "Superset", content: "Superset\n2 exercices enchaînés sans repos" },
+      { name: "German Volume Training", content: "GVT\n10×10 @ ~60% · repos 60-90 s" },
+      { name: "21s", content: "21s\n7 reps bas + 7 reps haut + 7 reps complètes" },
+      { name: "Tempo / excentrique", content: "Tempo ___ (ex. 3-1-1-0)\nExcentrique contrôlé" },
+      { name: "Pré-fatigue", content: "Pré-fatigue\nIsolation puis mouvement poly-articulaire" },
+    ],
+  },
+  {
+    fam: "Haltérophilie",
+    items: [
+      { name: "Snatch complex", content: "Snatch complex\n1 Snatch Pull + 1 Power Snatch + 1 Overhead Squat" },
+      { name: "Clean complex", content: "Clean complex\n1 Clean Pull + 1 Power Clean + 1 Front Squat + 1 Jerk" },
+      { name: "Tall Snatch / Clean", content: "Tall Snatch (technique)\nDépart hanche, vitesse sous la barre" },
+      { name: "From blocks", content: "Snatch/Clean from blocks\nDépart sur blocs (position ___)" },
+      { name: "Pause / position", content: "Pause squat / position\nMaintien 2-3 s en position basse" },
+      { name: "Complexe force-vitesse", content: "Complex\n___ lourd + ___ explosif (contraste)" },
+    ],
+  },
+  {
+    fam: "Kinésithérapie",
+    items: [
+      { name: "McKenzie", content: "Méthode McKenzie\nExtensions lombaires répétées (centralisation)" },
+      { name: "CARs", content: "CARs (Controlled Articular Rotations)\nRotations articulaires contrôlées, amplitude max" },
+      { name: "Excentrique (Stanish)", content: "Protocole excentrique\n3×15 excentriques lents (tendinopathie)" },
+      { name: "Isométrie longue", content: "Isométrie\n5×45 s contraction isométrique (antalgique tendineux)" },
+      { name: "PNF / Contracté-relâché", content: "PNF\nContraction 6 s → relâchement → gain d'amplitude" },
+      { name: "Étirement global (chaînes)", content: "Posture d'étirement global type Mézières/RPG" },
+      { name: "Mobilisation neurale", content: "Glissement neural (sciatique / médian)" },
+    ],
+  },
+];
+
+const CATALOG_QUALITIES = [
+  {
+    fam: "Vitesse / Explosivité",
+    items: [
+      { name: "Éducatifs vitesse", content: "Éducatifs\nMontées de genoux · talons-fesses · foulées bondissantes" },
+      { name: "Accélérations", content: "Accélérations\n___ × ___ m progressives / récup complète" },
+      { name: "Pliométrie", content: "Pliométrie\nDrop jumps / box jumps / bonds — qualité > quantité" },
+      { name: "Contrast training", content: "Contraste\n___ lourd + ___ explosif (ex. squat + saut)" },
+      { name: "Med-ball throws", content: "Lancers med-ball\n___ × ___ (explosivité haut du corps)" },
+    ],
+  },
+  {
+    fam: "Coordination / Agilité / Équilibre",
+    items: [
+      { name: "Échelle de rythme", content: "Échelle d'agilité\nDrills de pieds / coordination" },
+      { name: "Changements de direction", content: "Agilité\nT-test · 5-10-5 · réactions miroir" },
+      { name: "Proprioception", content: "Équilibre\nUnipodal · surface instable · yeux fermés" },
+      { name: "Dissociation segmentaire", content: "Coordination\nDrills de dissociation haut/bas" },
+    ],
+  },
+  {
+    fam: "Endurance / Résistance",
+    items: [
+      { name: "Endurance aérobie", content: "Endurance aérobie\n___ min continu zone 2-3" },
+      { name: "Résistance lactique", content: "Résistance\nIntervalles courts, récup incomplète" },
+      { name: "Circuit", content: "Circuit\n___ stations × ___ — peu de repos" },
+      { name: "AMRAP", content: "AMRAP ___ min\n___ / ___ / ___" },
+    ],
+  },
+];
+
+// Migration vers le modèle "cycles" (objets à plage de dates, superposables)
+function migrateCycles(pd = {}) {
+  const out = {};
+  for (const id of Object.keys(pd)) {
+    const p = pd[id] || {};
+    const np = {
+      blocks: p.blocks || {},
+      doneDays: p.doneDays || {},
+      cycles: Array.isArray(p.cycles) ? p.cycles : [],
+    };
+    if (p.phases && !np.cycles.length) {
+      Object.keys(p.phases).forEach((wk) => {
+        const ph = p.phases[wk] || {};
+        const start = keyToDate(wk);
+        const th = THEMES.find((t) => t.id === ph.theme);
+        np.cycles.push({
+          id: newCycleId(),
+          themeId: ph.theme || "gym",
+          name: th ? th.label : "Cycle",
+          text: ph.text || "",
+          startKey: wk,
+          endKey: keyOf(addDays(start, 6)),
+        });
+      });
+    } else if (p.themes && !np.cycles.length) {
+      Object.keys(p.themes).forEach((dk) => {
+        const th = THEMES.find((t) => t.id === p.themes[dk]);
+        np.cycles.push({
+          id: newCycleId(),
+          themeId: p.themes[dk] || "gym",
+          name: th ? th.label : "Cycle",
+          text: "",
+          startKey: dk,
+          endKey: dk,
+        });
+      });
+    }
+    out[id] = np;
+  }
+  return out;
+}
+
+// ---- Thèmes de "blocs de travail" (périodisation, vue mois) ----
+const THEMES = [
+  { id: "gym", label: "Gym", color: "#5B8DEF" },
+  { id: "haltero", label: "Haltérophilie", color: "#8B6FD8" },
+  { id: "cardio", label: "Cardio", color: "#2FB37A" },
+  { id: "muscu", label: "Muscu", color: "#E08A4B" },
+];
+const themeById = (id) => THEMES.find((t) => t.id === id);
+
+// ---- Données de démo pour la semaine courante ----
+function seedData() {
+  const mon = mondayOf(0);
+  const k = (i) => keyOf(addDays(mon, i));
+  return {
+    [k(0)]: [
+      { id: newId(), title: "Warmup", duration: "", color: 0,
+        content: "3 sets\n5/5m crab walk\n6/6 shrimp squat\nno rest" },
+      { id: newId(), title: "Back Squat", duration: "", color: 5,
+        content: "2 Reps @60%\n2 Reps @65%\n2 Reps @70%\n1 Rep @80%\n1 Rep @90%\nthen find your 1RM" },
+      { id: newId(), title: "Metcon", duration: "12'", color: 1,
+        content: "For time:\n21-15-9 Double DB Thrusters\n400m run" },
+    ],
+    [k(2)]: [
+      { id: newId(), title: "Warmup", duration: "", color: 1,
+        content: "500m Row\n2 rounds:\n10 push-ups\n10 ring rows" },
+      { id: newId(), title: "Strength", duration: "", color: 3,
+        content: "Superset x4\nMax Rep Strict Pull-Ups\nDB Push Press x15\n60\" rest" },
+      { id: newId(), title: "Finisher", duration: "", color: 4,
+        content: "4 rounds:\n10 V-Ups\n15 Supermans\nRest 30s / round" },
+    ],
+    [k(3)]: [
+      { id: newId(), title: "Force", duration: "", color: 2,
+        content: "Deadlift\n5x8 @ 60%" },
+    ],
+  };
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function buildPrintableHTML(weekDates, blocksByDate, weekLabel) {
+  const days = weekDates
+    .map((d, i) => {
+      const list = blocksByDate[keyOf(d)] || [];
+      const inner = list.length
+        ? list
+            .map((b) => {
+              const c = COLORS[b.color] || COLORS[0];
+              return `<div class="blk" style="background:${c.bg};border-left:5px solid ${c.bar};"><div class="blk-h"><strong>${escapeHtml(
+                b.title
+              )}</strong>${b.duration ? ` <span>${escapeHtml(b.duration)}</span>` : ""}</div>${
+                b.content ? `<pre>${escapeHtml(b.content)}</pre>` : ""
+              }</div>`;
+            })
+            .join("")
+        : `<div class="empty">—</div>`;
+      return `<section class="day"><h2>${DAYS_FR[i]} ${d.getDate()}</h2>${inner}</section>`;
+    })
+    .join("");
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Planning ${escapeHtml(weekLabel)}</title>
+<style>
+  *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body{font-family:system-ui,Arial,sans-serif;margin:20px;color:#1e293b;}
+  h1{font-size:18px;margin:0 0 14px;}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .day{border:1px solid #e2e8f0;border-radius:8px;padding:8px;break-inside:avoid;background:#fff;}
+  .day h2{font-size:12px;margin:0 0 8px;border-bottom:1px solid #f1f5f9;padding-bottom:4px;color:#0f172a;}
+  .blk{border-radius:6px;padding:6px;margin-bottom:6px;break-inside:avoid;}
+  .blk-h{font-size:11px;color:#0f172a;}
+  .blk-h span{color:#475569;font-weight:600;}
+  .blk pre{font-family:inherit;font-size:10px;white-space:pre-wrap;margin:4px 0 0;color:#334155;}
+  .empty{color:#cbd5e1;font-size:12px;}
+  @page{size:landscape;margin:10mm;}
+</style></head>
+<body><h1>Planning — ${escapeHtml(weekLabel)}</h1><div class="grid">${days}</div></body></html>`;
+}
+
+function App() {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [programs, setPrograms] = useState([]); // [{ id, name }]
+  const [programData, setProgramData] = useState({}); // { [id]: { blocks, doneDays } }
+  const [activeId, setActiveId] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("saved"); // saving | saved | error
+  const saveTimer = useRef(null);
+  const [menuFor, setMenuFor] = useState(null); // block id with open "…" menu
+  const [editor, setEditor] = useState(null); // { mode, dateKey, blockId, draft }
+  const [dragOverKey, setDragOverKey] = useState(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [dayClipboard, setDayClipboard] = useState(null);
+  const [weekClipboard, setWeekClipboard] = useState(null);
+  const [dayMenuFor, setDayMenuFor] = useState(null);
+  const [weekMenuOpen, setWeekMenuOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [templateCategories, setTemplateCategories] = useState([]); // [{ id, name }]
+  const [templateSave, setTemplateSave] = useState(null); // { block, categoryId, newCat }
+  const [newCatName, setNewCatName] = useState("");
+  const [programsOpen, setProgramsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("week"); // week | month | cycle
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [cycleEdit, setCycleEdit] = useState(null); // { mode, draft }
+  const [cycleSearch, setCycleSearch] = useState("");
+  const [presentDate, setPresentDate] = useState(null); // Date | null (mode présentation)
+  const fileInputRef = useRef(null);
+  const dragRef = useRef(null); // { fromKey, blockId }
+
+  // ---- Données du programme actif (blocks / doneDays dérivés) ----
+  const activeData = programData[activeId] || { blocks: {}, doneDays: {} };
+  const blocks = activeData.blocks;
+  const doneDays = activeData.doneDays;
+  const cycles = activeData.cycles || [];
+  const activeProgram = programs.find((p) => p.id === activeId);
+  const activeName = activeProgram ? activeProgram.name : "Programmation";
+
+  const setBlocks = (updater) =>
+    setProgramData((pd) => {
+      const cur = pd[activeId] || { blocks: {}, doneDays: {} };
+      const nextBlocks = typeof updater === "function" ? updater(cur.blocks) : updater;
+      return { ...pd, [activeId]: { ...cur, blocks: nextBlocks } };
+    });
+  const setDoneDays = (updater) =>
+    setProgramData((pd) => {
+      const cur = pd[activeId] || { blocks: {}, doneDays: {} };
+      const nextDone = typeof updater === "function" ? updater(cur.doneDays) : updater;
+      return { ...pd, [activeId]: { ...cur, doneDays: nextDone } };
+    });
+  const setCycles = (updater) =>
+    setProgramData((pd) => {
+      const cur = pd[activeId] || { blocks: {}, doneDays: {} };
+      const nextCycles =
+        typeof updater === "function" ? updater(cur.cycles || []) : updater;
+      return { ...pd, [activeId]: { ...cur, cycles: nextCycles } };
+    });
+  // cycles couvrant un jour / une semaine (chevauchement possible)
+  const cyclesForDate = (dk) =>
+    cycles.filter((c) => c.startKey <= dk && dk <= c.endKey);
+  const cyclesForWeek = (wkStart) => {
+    const a = keyOf(wkStart);
+    const b = keyOf(addDays(wkStart, 6));
+    return cycles.filter((c) => c.startKey <= b && c.endKey >= a);
+  };
+  const sortedCycles = [...cycles].sort((x, y) =>
+    x.startKey < y.startKey ? -1 : x.startKey > y.startKey ? 1 : 0
+  );
+
+  // Chargement initial depuis la mémoire
+  useEffect(() => {
+    let cancelled = false;
+    const fallback = () => {
+      const pid = newProgramId();
+      const seeded = seedData();
+      setPrograms([{ id: pid, name: "Programmation Box" }]);
+      setProgramData({ [pid]: { blocks: seeded, doneDays: {} } });
+      setActiveId(pid);
+    };
+    (async () => {
+      if (!hasStorage) {
+        fallback();
+        setLoaded(true);
+        return;
+      }
+      try {
+        const res = await DB.load(STORAGE_KEY);
+        if (!cancelled && res && res.value) {
+          const data = JSON.parse(res.value);
+          if (data.programs && data.programData) {
+            // format multi-programmes
+            bumpUidPrograms(data.programData, data.templates);
+            setPrograms(data.programs);
+            setProgramData(migrateCycles(data.programData));
+            setActiveId(data.activeId || (data.programs[0] && data.programs[0].id));
+            setTemplates(data.templates || []);
+            setTemplateCategories(data.templateCategories || []);
+          } else {
+            // ancien format { blocks, templates, doneDays } → migration
+            const pid = newProgramId();
+            bumpUid(data.blocks, data.templates);
+            setPrograms([{ id: pid, name: "Programmation Box" }]);
+            setProgramData({ [pid]: { blocks: data.blocks || {}, doneDays: data.doneDays || {} } });
+            setActiveId(pid);
+            setTemplates(data.templates || []);
+          }
+        } else if (!cancelled) {
+          fallback();
+        }
+      } catch (e) {
+        // clé inexistante au premier lancement → on amorce avec la démo
+        if (!cancelled) fallback();
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Sauvegarde automatique (anti-rebond)
+  useEffect(() => {
+    if (!loaded || !hasStorage) return;
+    setSaveStatus("saving");
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        await DB.save(
+          STORAGE_KEY,
+          JSON.stringify({ programs, programData, activeId, templates, templateCategories })
+        );
+        setSaveStatus("saved");
+      } catch (e) {
+        setSaveStatus("error");
+      }
+    }, 500);
+    return () => clearTimeout(saveTimer.current);
+  }, [programs, programData, activeId, templates, templateCategories, loaded]);
+
+  const monday = mondayOf(weekOffset);
+  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const sunday = weekDates[weekDates.length - 1];
+  const weekLabel =
+    monday.getMonth() === sunday.getMonth()
+      ? `${MONTHS_FR[monday.getMonth()]} ${monday.getFullYear()}`
+      : `${MONTHS_FR[monday.getMonth()]} – ${MONTHS_FR[sunday.getMonth()]} ${sunday.getFullYear()}`;
+
+  const todayKey = keyOf(mondayOf(0)) === keyOf(monday) ? keyOf(new Date()) : null;
+
+  // ---- Vue mois ----
+  const monthRef = new Date();
+  monthRef.setHours(0, 0, 0, 0);
+  monthRef.setDate(1);
+  monthRef.setMonth(monthRef.getMonth() + monthOffset);
+  const monthLabel = `${MONTHS_FR[monthRef.getMonth()]} ${monthRef.getFullYear()}`;
+  const monthGridStart = addDays(monthRef, -((monthRef.getDay() + 6) % 7));
+  const monthCells = Array.from({ length: 42 }, (_, i) => addDays(monthGridStart, i));
+  const baseMonday = mondayOf(0);
+  const goToWeekOfDate = (date) => {
+    const off = Math.round((mondayOfDate(date) - baseMonday) / (7 * 24 * 3600 * 1000));
+    setWeekOffset(off);
+    setViewMode("week");
+  };
+
+  // ---- Mutations ----
+  const getList = (k) => blocks[k] || [];
+  const setList = (k, list) =>
+    setBlocks((b) => ({ ...b, [k]: list }));
+
+  const openNew = (dateKey) =>
+    setEditor({
+      mode: "new",
+      dateKey,
+      draft: { title: "", duration: "", color: 0, content: "" },
+    });
+
+  const openEdit = (dateKey, block) => {
+    setMenuFor(null);
+    setEditor({ mode: "edit", dateKey, blockId: block.id, draft: { ...block } });
+  };
+
+  const saveEditor = () => {
+    const { mode, dateKey, blockId, draft } = editor;
+    const clean = { ...draft, title: draft.title.trim() || "Bloc" };
+    if (mode === "new") {
+      setList(dateKey, [...getList(dateKey), { ...clean, id: newId() }]);
+    } else {
+      setList(
+        dateKey,
+        getList(dateKey).map((b) => (b.id === blockId ? { ...clean, id: blockId } : b))
+      );
+    }
+    setEditor(null);
+  };
+
+  const duplicateBlock = (dateKey, block) => {
+    setMenuFor(null);
+    const list = getList(dateKey);
+    const idx = list.findIndex((b) => b.id === block.id);
+    const copy = { ...block, id: newId() };
+    const next = [...list];
+    next.splice(idx + 1, 0, copy);
+    setList(dateKey, next);
+  };
+
+  const deleteBlock = (dateKey, blockId) => {
+    setMenuFor(null);
+    setList(dateKey, getList(dateKey).filter((b) => b.id !== blockId));
+  };
+
+  const saveAsTemplate = (block) => {
+    setMenuFor(null);
+    setTemplateSave({ block, categoryId: "", newCat: "" });
+  };
+  const confirmSaveTemplate = () => {
+    const { block, categoryId, newCat } = templateSave;
+    let catId = categoryId || null;
+    if (newCat && newCat.trim()) {
+      catId = "cat" + Math.random().toString(36).slice(2, 7);
+      setTemplateCategories((cs) => [...cs, { id: catId, name: newCat.trim() }]);
+    }
+    setTemplates((t) => [...t, { ...block, id: newId(), categoryId: catId }]);
+    setTemplateSave(null);
+  };
+  const deleteTemplate = (id) =>
+    setTemplates((t) => t.filter((x) => x.id !== id));
+  const setTemplateCategory = (templateId, categoryId) =>
+    setTemplates((t) =>
+      t.map((x) => (x.id === templateId ? { ...x, categoryId: categoryId || null } : x))
+    );
+  const addCategory = (name) => {
+    if (!name || !name.trim()) return;
+    setTemplateCategories((cs) => [...cs, { id: "cat" + Math.random().toString(36).slice(2, 7), name: name.trim() }]);
+  };
+  const renameCategory = (id, name) =>
+    setTemplateCategories((cs) => cs.map((c) => (c.id === id ? { ...c, name } : c)));
+  const deleteCategory = (id) => {
+    setTemplateCategories((cs) => cs.filter((c) => c.id !== id));
+    setTemplates((t) => t.map((x) => (x.categoryId === id ? { ...x, categoryId: null } : x)));
+  };
+
+  // ---- Gestion des programmations ----
+  const addProgram = () => {
+    const id = newProgramId();
+    setPrograms((ps) => [...ps, { id, name: `Programmation ${ps.length + 1}` }]);
+    setProgramData((pd) => ({ ...pd, [id]: { blocks: {}, doneDays: {} } }));
+    setActiveId(id);
+    setWeekOffset(0);
+  };
+  const renameProgram = (id, name) =>
+    setPrograms((ps) => ps.map((p) => (p.id === id ? { ...p, name } : p)));
+  const deleteProgram = (id) => {
+    if (programs.length <= 1) return;
+    const next = programs.filter((p) => p.id !== id);
+    setPrograms(next);
+    setProgramData((pd) => {
+      const n = { ...pd };
+      delete n[id];
+      return n;
+    });
+    if (id === activeId) setActiveId(next[0].id);
+  };
+  const selectProgram = (id) => {
+    setActiveId(id);
+    setProgramsOpen(false);
+  };
+
+  // ---- Cycles (blocs de travail à plage de dates) ----
+  const openNewCycle = (startKey, endKey) =>
+    setCycleEdit({
+      mode: "new",
+      draft: {
+        id: null,
+        themeId: "gym",
+        name: "Gym",
+        text: "",
+        startKey: startKey || keyOf(monday),
+        endKey: endKey || keyOf(addDays(monday, 6)),
+      },
+    });
+  const openEditCycle = (cyc) =>
+    setCycleEdit({ mode: "edit", draft: { ...cyc } });
+  const saveCycle = () => {
+    const draft = cycleEdit.draft;
+    let { startKey, endKey } = draft;
+    if (endKey < startKey) [startKey, endKey] = [endKey, startKey];
+    const clean = { ...draft, startKey, endKey, name: (draft.name || "").trim() || "Cycle" };
+    if (cycleEdit.mode === "new") {
+      setCycles((cs) => [...cs, { ...clean, id: newCycleId() }]);
+    } else {
+      setCycles((cs) => cs.map((c) => (c.id === draft.id ? clean : c)));
+    }
+    setCycleEdit(null);
+  };
+  const deleteCycle = (id) => {
+    setCycles((cs) => cs.filter((c) => c.id !== id));
+    setCycleEdit(null);
+  };
+
+  const toggleDone = (k) =>
+    setDoneDays((d) => ({ ...d, [k]: !d[k] }));
+
+  const resetWeek = () => {
+    setBlocks((b) => {
+      const next = { ...b };
+      weekDates.forEach((d) => { delete next[keyOf(d)]; });
+      return next;
+    });
+    setDoneDays((d) => {
+      const next = { ...d };
+      weekDates.forEach((dd) => { delete next[keyOf(dd)]; });
+      return next;
+    });
+    setConfirmReset(false);
+  };
+
+  const exportPlanning = () => {
+    try {
+      const html = buildPrintableHTML(weekDates, blocks, weekLabel);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `planning-${keyOf(monday)}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (e) {
+      setSaveStatus("error");
+    }
+  };
+
+  // ---- Mode présentation (whiteboard box) ----
+  const openPresentation = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const inWeek = weekDates.some((d) => keyOf(d) === keyOf(today));
+    setPresentDate(inWeek ? today : new Date(monday));
+  };
+
+  // ---- Sauvegarde / restauration des données (JSON) ----
+  const exportData = () => {
+    try {
+      const data = JSON.stringify(
+        { programs, programData, activeId, templates, templateCategories },
+        null,
+        2
+      );
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `builder-sauvegarde-${keyOf(new Date())}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (e) {
+      setSaveStatus("error");
+    }
+  };
+  const importData = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (data.programs && data.programData) {
+          bumpUidPrograms(data.programData, data.templates);
+          setPrograms(data.programs);
+          setProgramData(migrateCycles(data.programData));
+          setActiveId(data.activeId || (data.programs[0] && data.programs[0].id));
+          setTemplates(data.templates || []);
+          setTemplateCategories(data.templateCategories || []);
+          setProgramsOpen(false);
+        }
+      } catch (e) {
+        setSaveStatus("error");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // ---- Raccourcis : duplication jour / semaine ----
+  const cloneList = (list) => (list || []).map((b) => ({ ...b, id: newId() }));
+
+  const copyDay = (dateKey) => {
+    setDayMenuFor(null);
+    setDayClipboard((getList(dateKey) || []).map((b) => ({ ...b })));
+  };
+  const pasteDay = (dateKey) => {
+    setDayMenuFor(null);
+    if (!dayClipboard) return;
+    setList(dateKey, [...getList(dateKey), ...cloneList(dayClipboard)]);
+  };
+  const clearDay = (dateKey) => {
+    setDayMenuFor(null);
+    setList(dateKey, []);
+    setDoneDays((d) => {
+      const n = { ...d };
+      delete n[dateKey];
+      return n;
+    });
+  };
+  const duplicateDayNextWeek = (date) => {
+    setDayMenuFor(null);
+    const src = getList(keyOf(date));
+    if (!src.length) return;
+    const tgt = keyOf(addDays(date, 7));
+    setList(tgt, [...getList(tgt), ...cloneList(src)]);
+  };
+
+  const copyWeek = () => {
+    setWeekMenuOpen(false);
+    const map = {};
+    weekDates.forEach((d, i) => {
+      map[i] = (getList(keyOf(d)) || []).map((b) => ({ ...b }));
+    });
+    setWeekClipboard(map);
+  };
+  const pasteWeek = () => {
+    setWeekMenuOpen(false);
+    if (!weekClipboard) return;
+    setBlocks((prev) => {
+      const next = { ...prev };
+      weekDates.forEach((d, i) => {
+        const src = weekClipboard[i] || [];
+        if (!src.length) return;
+        const k = keyOf(d);
+        next[k] = [...(next[k] || []), ...src.map((b) => ({ ...b, id: newId() }))];
+      });
+      return next;
+    });
+  };
+  const duplicateWeekNext = () => {
+    setWeekMenuOpen(false);
+    setBlocks((prev) => {
+      const next = { ...prev };
+      weekDates.forEach((d) => {
+        const src = prev[keyOf(d)] || [];
+        if (!src.length) return;
+        const tgt = keyOf(addDays(d, 7));
+        next[tgt] = [...(next[tgt] || []), ...src.map((b) => ({ ...b, id: newId() }))];
+      });
+      return next;
+    });
+    setWeekOffset((w) => w + 1);
+  };
+
+  // ---- Drag & drop ----
+  const onDragStart = (fromKey, blockId) => {
+    dragRef.current = { fromKey, blockId };
+  };
+  const onDropOnDay = (toKey, toIndex = null) => {
+    const drag = dragRef.current;
+    setDragOverKey(null);
+    if (!drag) return;
+    const { fromKey, blockId } = drag;
+    const fromList = getList(fromKey);
+    const block = fromList.find((b) => b.id === blockId);
+    if (!block) return;
+
+    if (fromKey === toKey) {
+      const without = fromList.filter((b) => b.id !== blockId);
+      const insertAt = toIndex == null ? without.length : toIndex;
+      without.splice(insertAt, 0, block);
+      setList(toKey, without);
+    } else {
+      setList(fromKey, fromList.filter((b) => b.id !== blockId));
+      const toList = [...getList(toKey)];
+      const insertAt = toIndex == null ? toList.length : toIndex;
+      toList.splice(insertAt, 0, block);
+      setList(toKey, toList);
+    }
+    dragRef.current = null;
+  };
+
+  if (!loaded) {
+    return (
+      <div
+        className="w-full min-h-screen flex items-center justify-center"
+        style={{ background: "#FAFAFA", fontFamily: "'Inter', system-ui, sans-serif" }}
+      >
+        <span className="text-sm text-slate-400">Chargement du planning…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-full min-h-screen text-slate-800"
+      style={{ background: "#FAFAFA", fontFamily: "'Inter', system-ui, sans-serif" }}
+      onClick={() => {
+        setMenuFor(null);
+        setDayMenuFor(null);
+        setWeekMenuOpen(false);
+        setProgramsOpen(false);
+      }}
+    >
+      {/* ---- Barre supérieure ---- */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
+        <div className="flex items-center gap-2">
+          <div
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-white font-bold"
+            style={{ background: "#111" }}
+          >
+            B
+          </div>
+          <span className="font-semibold tracking-tight text-lg hidden sm:block">
+            Mon Builder
+          </span>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setProgramsOpen(true);
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50"
+          style={{ maxWidth: "55%" }}
+        >
+          <span className="truncate">{activeName}</span>
+          <ChevronDown size={15} className="text-slate-400 shrink-0" />
+        </button>
+      </div>
+
+      {/* ---- Toolbar planning ---- */}
+      <div className="flex items-center justify-between gap-2 px-4 py-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setWeekOffset(0);
+              setMonthOffset(0);
+            }}
+            className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50"
+          >
+            Aujourd'hui
+          </button>
+
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden text-sm">
+            <button
+              onClick={() => setViewMode("week")}
+              className={`px-3 py-1.5 font-medium ${
+                viewMode === "week" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Semaine
+            </button>
+            <button
+              onClick={() => setViewMode("month")}
+              className={`px-3 py-1.5 font-medium border-l border-slate-200 ${
+                viewMode === "month" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Mois
+            </button>
+            <button
+              onClick={() => setViewMode("cycle")}
+              className={`px-3 py-1.5 font-medium border-l border-slate-200 ${
+                viewMode === "cycle" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Cycle
+            </button>
+          </div>
+
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white">
+            <button
+              onClick={() =>
+                viewMode === "month"
+                  ? setMonthOffset((m) => m - 1)
+                  : setWeekOffset((w) => w - 1)
+              }
+              className="p-1.5 hover:bg-slate-50 rounded-l-lg"
+              aria-label="Précédent"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={() =>
+                viewMode === "month"
+                  ? setMonthOffset((m) => m + 1)
+                  : setWeekOffset((w) => w + 1)
+              }
+              className="p-1.5 hover:bg-slate-50 rounded-r-lg border-l border-slate-200"
+              aria-label="Suivant"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700 ml-1">
+            <Calendar size={16} className="text-slate-400" />
+            {viewMode === "month" ? monthLabel : weekLabel}
+            {viewMode === "week" && (
+              <span className="text-slate-400 font-normal">
+                · du {monday.getDate()} au {sunday.getDate()}
+              </span>
+            )}
+          </div>
+
+          {viewMode === "week" && (
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWeekMenuOpen((o) => !o);
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50"
+              >
+                Semaine <ChevronDown size={15} />
+              </button>
+              {weekMenuOpen && (
+                <div
+                  className="absolute left-0 top-9 z-30 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-1 text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MenuItem
+                    icon={<ChevronRight size={15} />}
+                    label="Dupliquer → semaine suivante"
+                    onClick={duplicateWeekNext}
+                  />
+                  <MenuItem icon={<Copy size={15} />} label="Copier la semaine" onClick={copyWeek} />
+                  {weekClipboard && (
+                    <MenuItem icon={<Plus size={15} />} label="Coller la semaine ici" onClick={pasteWeek} />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-400 flex items-center gap-1">
+            {saveStatus === "saving" && "Enregistrement…"}
+            {saveStatus === "saved" && (
+              <>
+                <Check size={13} className="text-emerald-500" /> Enregistré
+              </>
+            )}
+            {saveStatus === "error" && (
+              <span className="text-red-500">Erreur de sauvegarde</span>
+            )}
+          </span>
+          {templates.length > 0 && (
+            <button
+              onClick={() => setTemplatesOpen(true)}
+              className="text-xs text-slate-500 hover:text-slate-800 hover:underline underline-offset-2"
+            >
+              · {templates.length} modèle{templates.length > 1 ? "s" : ""}
+            </button>
+          )}
+          {(dayClipboard || weekClipboard) && (
+            <span className="text-xs text-blue-500">
+              · {weekClipboard ? "semaine copiée" : "jour copié"}
+            </span>
+          )}
+          {viewMode === "week" && (
+            <>
+              <button
+                onClick={() => setConfirmReset(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
+              >
+                <RotateCcw size={16} /> Vider la semaine
+              </button>
+              <button
+                onClick={openPresentation}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg text-white"
+                style={{ background: "#111" }}
+              >
+                <Monitor size={16} /> Présentation
+              </button>
+              <button
+                onClick={exportPlanning}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50"
+              >
+                <Download size={16} /> PDF
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ---- Grille semaine ---- */}
+      {viewMode === "week" && (
+        <>
+          {(() => {
+            const wkCycles = cyclesForWeek(monday);
+            return (
+              <div className="px-4 pt-1 pb-3 flex flex-wrap items-center gap-2">
+                {wkCycles.map((c) => {
+                  const th = themeById(c.themeId);
+                  const color = th ? th.color : "#94a3b8";
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => openEditCycle(c)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold hover:opacity-90"
+                      style={{ background: color + "18", color, border: `1px solid ${color}` }}
+                      title={c.text || c.name}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => openNewCycle(keyOf(monday), keyOf(addDays(monday, 6)))}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-slate-500 border border-dashed border-slate-300 hover:bg-slate-50"
+                >
+                  <Plus size={13} /> Cycle
+                </button>
+              </div>
+            );
+          })()}
+          <div className="px-4 pb-10 overflow-x-auto">
+        <div
+          className="grid gap-px rounded-xl overflow-hidden border border-slate-200 bg-slate-200"
+          style={{ gridTemplateColumns: "repeat(7, auto)", width: "max-content" }}
+        >
+          {weekDates.map((date, i) => {
+            const k = keyOf(date);
+            const list = getList(k);
+            const isToday = todayKey === k;
+            const isDragOver = dragOverKey === k;
+            return (
+              <div
+                key={k}
+                className="bg-white flex flex-col"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverKey(k);
+                }}
+                onDragLeave={() => setDragOverKey((cur) => (cur === k ? null : cur))}
+                onDrop={() => onDropOnDay(k)}
+                style={{
+                  minWidth: 200,
+                  maxWidth: 360,
+                  minHeight: 420,
+                  ...(isDragOver ? { background: "#F0F7FF" } : {}),
+                }}
+              >
+                {/* En-tête du jour */}
+                <div
+                  className="flex items-center justify-between px-3 py-2 border-b border-slate-100 sticky top-0 bg-white z-10"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span
+                      className={`text-sm font-semibold ${isToday ? "text-blue-600" : "text-slate-700"}`}
+                    >
+                      {DAYS_FR[i]}
+                    </span>
+                    <span className="text-sm text-slate-400">{date.getDate()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDayMenuFor(dayMenuFor === k ? null : k);
+                        }}
+                        className="p-0.5 rounded hover:bg-slate-100 text-slate-400"
+                        aria-label="Options du jour"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                      {dayMenuFor === k && (
+                        <div
+                          className="absolute right-0 top-7 z-30 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 text-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MenuItem
+                            icon={<ChevronRight size={15} />}
+                            label="Dupliquer → semaine suiv."
+                            onClick={() => duplicateDayNextWeek(date)}
+                          />
+                          <MenuItem
+                            icon={<Copy size={15} />}
+                            label="Copier le jour"
+                            onClick={() => copyDay(k)}
+                          />
+                          {dayClipboard && (
+                            <MenuItem
+                              icon={<Plus size={15} />}
+                              label="Coller le jour ici"
+                              onClick={() => pasteDay(k)}
+                            />
+                          )}
+                          <div className="my-1 border-t border-slate-100" />
+                          <MenuItem
+                            icon={<Trash2 size={15} />}
+                            label="Vider le jour"
+                            danger
+                            onClick={() => clearDay(k)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => toggleDone(k)}
+                      className={`w-5 h-5 rounded border flex items-center justify-center ${
+                        doneDays[k]
+                          ? "bg-emerald-500 border-emerald-500 text-white"
+                          : "border-slate-300 hover:border-slate-400"
+                      }`}
+                      aria-label="Marquer le jour comme prêt"
+                    >
+                      {doneDays[k] && <Check size={13} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Blocs */}
+                <div className="flex-1 p-2 space-y-2">
+                  {list.map((block, bi) => (
+                    <BlockCard
+                      key={block.id}
+                      block={block}
+                      menuOpen={menuFor === block.id}
+                      onMenuToggle={(e) => {
+                        e.stopPropagation();
+                        setMenuFor(menuFor === block.id ? null : block.id);
+                      }}
+                      onEdit={() => openEdit(k, block)}
+                      onDuplicate={() => duplicateBlock(k, block)}
+                      onTemplate={() => saveAsTemplate(block)}
+                      onDelete={() => deleteBlock(k, block.id)}
+                      onDragStart={() => onDragStart(k, block.id)}
+                      onDropBefore={(e) => {
+                        e.stopPropagation();
+                        onDropOnDay(k, bi);
+                      }}
+                    />
+                  ))}
+
+                  <button
+                    onClick={() => openNew(k)}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg border border-dashed border-slate-200 transition-colors"
+                  >
+                    <Plus size={15} /> Ajouter un bloc
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-slate-400 mt-4 text-center">
+          Glisse un bloc d'un jour à l'autre · «&nbsp;…&nbsp;» sur un bloc pour l'éditer/dupliquer · «&nbsp;…&nbsp;» sur un jour pour copier/dupliquer le jour · menu «&nbsp;Semaine&nbsp;» pour recopier toute la semaine.
+          Tout est enregistré automatiquement.
+        </p>
+      </div>
+        </>
+      )}
+
+      {/* ---- Vue mois ---- */}
+      {viewMode === "month" && (
+        <div className="px-4 pb-10">
+          <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+            <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+              {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((d) => (
+                <div
+                  key={d}
+                  className="px-2 py-2 text-xs font-semibold text-slate-500 text-center"
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7">
+              {monthCells.map((cell) => {
+                const k = keyOf(cell);
+                const inMonth = cell.getMonth() === monthRef.getMonth();
+                const list = blocks[k] || [];
+                const isToday = keyOf(new Date()) === k;
+                const dayCycles = cyclesForDate(k);
+                return (
+                  <button
+                    key={k}
+                    onClick={() => openNewCycle(k, k)}
+                    className={`text-left p-1.5 border-b border-r border-slate-100 hover:bg-blue-50 transition-colors ${
+                      inMonth ? "bg-white" : "bg-slate-50"
+                    }`}
+                    style={{ minHeight: 92 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-xs font-medium ${
+                          isToday
+                            ? "text-blue-600"
+                            : inMonth
+                            ? "text-slate-700"
+                            : "text-slate-300"
+                        }`}
+                      >
+                        {cell.getDate()}
+                      </span>
+                      {list.length > 0 && (
+                        <span className="text-xs text-slate-400">{list.length}</span>
+                      )}
+                    </div>
+                    {dayCycles.slice(0, 3).map((c) => {
+                      const th = themeById(c.themeId);
+                      const color = th ? th.color : "#94a3b8";
+                      return (
+                        <div
+                          key={c.id}
+                          className="mt-1 px-1.5 py-0.5 rounded text-xs font-medium truncate"
+                          style={{ background: color + "22", color }}
+                        >
+                          {c.name}
+                        </div>
+                      );
+                    })}
+                    {dayCycles.length > 3 && (
+                      <div className="text-xs text-slate-400 mt-0.5">+{dayCycles.length - 3}</div>
+                    )}
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {list.slice(0, 8).map((b) => (
+                        <span
+                          key={b.id}
+                          className="w-2 h-2 rounded-full"
+                          style={{ background: (COLORS[b.color] || COLORS[0]).bar }}
+                        />
+                      ))}
+                      {list.length > 8 && (
+                        <span className="text-xs text-slate-400">+{list.length - 8}</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 mt-4 text-center">
+            Vue mois — clique un jour pour <strong>créer un cycle</strong> à partir de ce jour (tu choisis la plage de dates).
+            Les bandeaux colorés = les cycles en cours (ils peuvent se superposer) · les points = les blocs de séance.
+          </p>
+        </div>
+      )}
+
+      {/* ---- Vue cycle (liste des cycles créés) ---- */}
+      {viewMode === "cycle" && (
+        <div className="px-4 pb-10 space-y-3 max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 sticky top-0 bg-white py-2 z-10">
+            <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white">
+              <Search size={15} className="text-slate-400" />
+              <input
+                value={cycleSearch}
+                onChange={(e) => setCycleSearch(e.target.value)}
+                placeholder="Rechercher un cycle…"
+                className="flex-1 text-sm bg-transparent focus:outline-none"
+              />
+              {cycleSearch && (
+                <button onClick={() => setCycleSearch("")} className="text-slate-400 hover:text-slate-600">
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => openNewCycle()}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg text-white shrink-0"
+              style={{ background: "#111" }}
+            >
+              <Plus size={16} /> Nouveau cycle
+            </button>
+          </div>
+
+          {sortedCycles.length === 0 && (
+            <p className="text-sm text-slate-400 text-center py-10">
+              Aucun cycle. Crée ton premier cycle avec « Nouveau cycle », ou clique un jour en vue Mois.
+            </p>
+          )}
+
+          {sortedCycles
+            .map((c, i) => ({ c, num: i + 1 }))
+            .filter(({ c }) =>
+              c.name.toLowerCase().includes(cycleSearch.trim().toLowerCase())
+            )
+            .map(({ c, num }) => {
+              const th = themeById(c.themeId);
+              const color = th ? th.color : "#94a3b8";
+              const start = keyToDate(c.startKey);
+              const end = keyToDate(c.endKey);
+              const nbDays = Math.round((end - start) / 86400000) + 1;
+              const days = Array.from({ length: Math.max(1, nbDays) }, (_, j) => addDays(start, j));
+              const totalBlocks = days.reduce(
+                (n, d) => n + (blocks[keyOf(d)] || []).length,
+                0
+              );
+              return (
+                <div
+                  key={c.id}
+                  className="rounded-xl border bg-white overflow-hidden"
+                  style={{ borderColor: color }}
+                >
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded shrink-0"
+                        style={{ background: color + "22", color }}
+                      >
+                        Cycle {num}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-800 truncate">{c.name}</span>
+                      <span className="text-xs text-slate-400 shrink-0">
+                        {start.getDate()}/{start.getMonth() + 1} → {end.getDate()}/{end.getMonth() + 1} ·{" "}
+                        {nbDays} j · {totalBlocks} bloc{totalBlocks > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => openEditCycle(c)}
+                      className="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900 shrink-0"
+                    >
+                      <Pencil size={13} /> Éditer
+                    </button>
+                  </div>
+
+                  <div className="px-4 py-3 space-y-3">
+                    {c.text && (
+                      <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{c.text}</p>
+                    )}
+                    {/* Jours du cycle, cliquables → va au jour */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {days.map((d) => {
+                        const dk = keyOf(d);
+                        const n = (blocks[dk] || []).length;
+                        const di = (d.getDay() + 6) % 7;
+                        return (
+                          <button
+                            key={dk}
+                            onClick={() => goToWeekOfDate(d)}
+                            className="flex flex-col items-center justify-center rounded-lg border border-slate-200 hover:border-slate-400 hover:bg-slate-50 px-2 py-1"
+                            style={{ minWidth: 42 }}
+                            title={`Aller au ${["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"][di]} ${d.getDate()}`}
+                          >
+                            <span className="text-xs text-slate-400">
+                              {["L", "M", "M", "J", "V", "S", "D"][di]}
+                            </span>
+                            <span className="text-sm font-medium text-slate-700">{d.getDate()}</span>
+                            <span
+                              className="mt-0.5 w-1.5 h-1.5 rounded-full"
+                              style={{ background: n ? color : "transparent" }}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+          <p className="text-xs text-slate-400 mt-2 text-center">
+            Vue cycle — tes cycles, du plus ancien au plus récent. Recherche par nom pour y accéder vite.
+            Clique un jour d'un cycle pour aller directement à ce jour.
+          </p>
+        </div>
+      )}
+
+      {/* ---- Éditeur de cycle ---- */}
+      {cycleEdit &&
+        (() => {
+          const draft = cycleEdit.draft;
+          const set = (patch) => setCycleEdit((ce) => ({ ...ce, draft: { ...ce.draft, ...patch } }));
+          return (
+            <div
+              className="fixed inset-0 z-40 flex items-center justify-center p-4"
+              style={{ background: "rgba(15,23,42,0.45)" }}
+              onClick={() => setCycleEdit(null)}
+            >
+              <div
+                className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+                  <h2 className="font-semibold text-slate-800">
+                    {cycleEdit.mode === "new" ? "Nouveau cycle" : "Éditer le cycle"}
+                  </h2>
+                  <button
+                    onClick={() => setCycleEdit(null)}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-500"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="px-5 py-4 space-y-4">
+                  {/* Type (couleur) */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                      Type de travail (couleur)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {THEMES.map((th) => {
+                        const active = draft.themeId === th.id;
+                        return (
+                          <button
+                            key={th.id}
+                            onClick={() => {
+                              const wasDefault = THEMES.some((t) => t.label === draft.name);
+                              set({
+                                themeId: th.id,
+                                name: !draft.name || wasDefault ? th.label : draft.name,
+                              });
+                            }}
+                            className="px-3 py-1.5 text-sm font-medium rounded-full border-2"
+                            style={{
+                              borderColor: th.color,
+                              background: active ? th.color : th.color + "18",
+                              color: active ? "#fff" : "#334155",
+                            }}
+                          >
+                            {th.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Nom personnalisé */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">
+                      Nom du cycle
+                    </label>
+                    <input
+                      value={draft.name}
+                      onChange={(e) => set({ name: e.target.value })}
+                      placeholder="Ex : Seuil 83%, Force max, Prépa Hyrox…"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+
+                  {/* Plage de dates */}
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Début</label>
+                      <input
+                        type="date"
+                        value={draft.startKey}
+                        onChange={(e) => set({ startKey: e.target.value })}
+                        className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Fin</label>
+                      <input
+                        type="date"
+                        value={draft.endKey}
+                        onChange={(e) => set({ endKey: e.target.value })}
+                        className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Texte */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">
+                      Note du cycle
+                    </label>
+                    <textarea
+                      value={draft.text}
+                      onChange={(e) => set({ text: e.target.value })}
+                      rows={4}
+                      placeholder="Objectifs, volume, intensité, focus technique…"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50">
+                  {cycleEdit.mode === "edit" ? (
+                    <button
+                      onClick={() => deleteCycle(draft.id)}
+                      className="px-4 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50"
+                    >
+                      Supprimer
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCycleEdit(null)}
+                      className="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={saveCycle}
+                      className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+                      style={{ background: "#111" }}
+                    >
+                      {cycleEdit.mode === "new" ? "Créer le cycle" : "Enregistrer"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+      {/* ---- Mode présentation (whiteboard) ---- */}
+      {presentDate &&
+        (() => {
+          const dk = keyOf(presentDate);
+          const list = blocks[dk] || [];
+          const di = (presentDate.getDay() + 6) % 7;
+          const dayName = DAYS_FR[di];
+          const dCycles = cyclesForDate(dk);
+          return (
+            <div
+              className="fixed inset-0 z-50 overflow-auto"
+              style={{ background: "linear-gradient(160deg,#0b1220,#0f172a)" }}
+            >
+              <div className="flex items-center justify-between px-6 py-4">
+                <div className="text-slate-400 text-sm font-medium truncate">{activeName}</div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPresentDate(addDays(presentDate, -1))}
+                    className="p-2 rounded-lg text-slate-300 hover:bg-white/10"
+                    aria-label="Jour précédent"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const t = new Date();
+                      t.setHours(0, 0, 0, 0);
+                      setPresentDate(t);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:bg-white/10 border border-white/15"
+                  >
+                    Aujourd'hui
+                  </button>
+                  <button
+                    onClick={() => setPresentDate(addDays(presentDate, 1))}
+                    className="p-2 rounded-lg text-slate-300 hover:bg-white/10"
+                    aria-label="Jour suivant"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                  <button
+                    onClick={() => setPresentDate(null)}
+                    className="p-2 rounded-lg text-slate-300 hover:bg-white/10 ml-2"
+                    aria-label="Fermer"
+                  >
+                    <X size={22} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-8 pt-2 pb-6 text-center">
+                <div
+                  className="text-white font-bold tracking-tight"
+                  style={{ fontSize: "clamp(30px,6vw,72px)" }}
+                >
+                  {dayName} {presentDate.getDate()} {MONTHS_FR[presentDate.getMonth()]}
+                </div>
+                {dCycles.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-2 mt-3">
+                    {dCycles.map((c) => {
+                      const th = themeById(c.themeId);
+                      const col = th ? th.color : "#94a3b8";
+                      return (
+                        <span
+                          key={c.id}
+                          className="px-3 py-1 rounded-full text-sm font-semibold"
+                          style={{ background: col + "22", color: col, border: `1px solid ${col}` }}
+                        >
+                          {c.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="px-6 pb-12">
+                {list.length === 0 ? (
+                  <div
+                    className="text-center text-slate-500 font-bold"
+                    style={{ fontSize: "clamp(28px,5vw,56px)", marginTop: "8vh" }}
+                  >
+                    REPOS
+                  </div>
+                ) : (
+                  <div
+                    className="grid gap-4 max-w-6xl mx-auto"
+                    style={{ gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))" }}
+                  >
+                    {list.map((b) => {
+                      const c = COLORS[b.color] || COLORS[0];
+                      return (
+                        <div
+                          key={b.id}
+                          className="rounded-2xl p-5"
+                          style={{ background: "rgba(255,255,255,0.04)", borderTop: `5px solid ${c.bar}` }}
+                        >
+                          <div className="flex items-baseline justify-between gap-3 mb-2">
+                            <h3
+                              className="text-white font-bold"
+                              style={{ fontSize: "clamp(20px,2.6vw,30px)" }}
+                            >
+                              {b.title}
+                            </h3>
+                            {b.duration && (
+                              <span
+                                className="text-slate-300 font-semibold shrink-0"
+                                style={{ fontSize: "clamp(14px,1.6vw,20px)" }}
+                              >
+                                {b.duration}
+                              </span>
+                            )}
+                          </div>
+                          {b.content && (
+                            <pre
+                              className="text-slate-200 whitespace-pre-wrap leading-relaxed"
+                              style={{ fontSize: "clamp(16px,1.9vw,24px)", fontFamily: "inherit" }}
+                            >
+                              {b.content}
+                            </pre>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+      {/* Import de sauvegarde (input caché) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const f = e.target.files && e.target.files[0];
+          importData(f);
+          e.target.value = "";
+        }}
+      />
+
+      {/* ---- Éditeur de bloc ---- */}
+      {editor && (
+        <BlockEditor
+          editor={editor}
+          templates={templates}
+          categories={templateCategories}
+          onChange={(draft) => setEditor((e) => ({ ...e, draft }))}
+          onSave={saveEditor}
+          onClose={() => setEditor(null)}
+        />
+      )}
+
+      {/* ---- Confirmation : vider la semaine ---- */}
+      {confirmReset && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.45)" }}
+          onClick={() => setConfirmReset(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-semibold text-slate-800 mb-1">Vider la semaine affichée ?</h2>
+            <p className="text-sm text-slate-500 mb-4">
+              Tous les blocs de la semaine du {monday.getDate()} au {sunday.getDate()} seront
+              supprimés. Les autres semaines et tes modèles ne sont pas touchés.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmReset(false)}
+                className="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={resetWeek}
+                className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+                style={{ background: "#dc2626" }}
+              >
+                Vider la semaine
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Gestionnaire de modèles ---- */}
+      {templatesOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.45)" }}
+          onClick={() => setTemplatesOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-800">Mes modèles</h2>
+              <button
+                onClick={() => setTemplatesOpen(false)}
+                className="p-1 rounded hover:bg-slate-100 text-slate-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 overflow-y-auto space-y-4" style={{ maxHeight: 460 }}>
+              {/* Créer une catégorie */}
+              <div className="flex gap-2">
+                <input
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Nouvelle catégorie…"
+                  className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                />
+                <button
+                  onClick={() => {
+                    addCategory(newCatName);
+                    setNewCatName("");
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg text-white"
+                  style={{ background: "#111" }}
+                >
+                  Ajouter
+                </button>
+              </div>
+
+              {templates.length === 0 && templateCategories.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-6">
+                  Aucun modèle. Depuis un bloc, «&nbsp;…&nbsp;» → «&nbsp;Enregistrer en modèle&nbsp;».
+                </p>
+              ) : (
+                (() => {
+                  const groups = templateCategories.map((cat) => ({
+                    cat,
+                    items: templates.filter((t) => t.categoryId === cat.id),
+                  }));
+                  const uncategorized = templates.filter(
+                    (t) => !t.categoryId || !templateCategories.some((c) => c.id === t.categoryId)
+                  );
+                  groups.push({ cat: null, items: uncategorized });
+                  return groups
+                    .filter((g) => g.cat || g.items.length > 0)
+                    .map(({ cat, items }) => (
+                      <div key={cat ? cat.id : "none"} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          {cat ? (
+                            <>
+                              <input
+                                value={cat.name}
+                                onChange={(e) => renameCategory(cat.id, e.target.value)}
+                                className="text-sm font-semibold text-slate-700 bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-300 rounded px-1 py-0.5 focus:outline-none"
+                              />
+                              <span className="text-xs text-slate-400">{items.length}</span>
+                              <button
+                                onClick={() => deleteCategory(cat.id)}
+                                className="ml-auto p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                aria-label="Supprimer la catégorie"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-sm font-semibold text-slate-500">
+                              Sans nom{" "}
+                              <span className="text-xs text-slate-400 font-normal">{items.length}</span>
+                            </span>
+                          )}
+                        </div>
+                        {items.length === 0 ? (
+                          <p className="text-xs text-slate-300 pl-1">— vide —</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {items.map((t) => {
+                              const c = COLORS[t.color] || COLORS[0];
+                              return (
+                                <li
+                                  key={t.id}
+                                  className="flex items-center gap-2 p-2 rounded-lg border border-slate-100"
+                                >
+                                  <span
+                                    className="w-3 h-3 rounded-full shrink-0"
+                                    style={{ background: c.bar }}
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-medium text-slate-800 truncate">
+                                      {t.title}
+                                      {t.duration ? ` · ${t.duration}` : ""}
+                                    </div>
+                                    {t.content && (
+                                      <div className="text-xs text-slate-400 truncate">
+                                        {t.content.split("\n")[0]}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <select
+                                    value={t.categoryId || ""}
+                                    onChange={(e) => setTemplateCategory(t.id, e.target.value)}
+                                    className="text-xs border border-slate-200 rounded px-1 py-1 bg-white shrink-0"
+                                    style={{ maxWidth: 110 }}
+                                  >
+                                    <option value="">Sans nom</option>
+                                    {templateCategories.map((cc) => (
+                                      <option key={cc.id} value={cc.id}>
+                                        {cc.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    onClick={() => deleteTemplate(t.id)}
+                                    className="p-1.5 rounded hover:bg-red-50 text-red-500 shrink-0"
+                                    aria-label="Supprimer le modèle"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    ));
+                })()
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Dialogue : enregistrer en modèle (choix de catégorie) ---- */}
+      {templateSave && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.45)" }}
+          onClick={() => setTemplateSave(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-800">Enregistrer en modèle</h2>
+              <button
+                onClick={() => setTemplateSave(null)}
+                className="p-1 rounded hover:bg-slate-100 text-slate-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-sm text-slate-500">
+                Bloc : <span className="font-medium text-slate-800">{templateSave.block.title}</span>
+              </p>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Catégorie</label>
+                <select
+                  value={templateSave.categoryId}
+                  onChange={(e) =>
+                    setTemplateSave((s) => ({ ...s, categoryId: e.target.value, newCat: "" }))
+                  }
+                  disabled={!!templateSave.newCat.trim()}
+                  className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white disabled:opacity-50"
+                >
+                  <option value="">Sans nom</option>
+                  {templateCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">
+                  …ou nouvelle catégorie
+                </label>
+                <input
+                  value={templateSave.newCat}
+                  onChange={(e) => setTemplateSave((s) => ({ ...s, newCat: e.target.value }))}
+                  placeholder="Ex : Échauffements, Metcons, Force…"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-100 bg-slate-50">
+              <button
+                onClick={() => setTemplateSave(null)}
+                className="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmSaveTemplate}
+                className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+                style={{ background: "#111" }}
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Gestionnaire de programmations ---- */}
+      {programsOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.45)" }}
+          onClick={() => setProgramsOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-800">Mes programmations</h2>
+              <button
+                onClick={() => setProgramsOpen(false)}
+                className="p-1 rounded hover:bg-slate-100 text-slate-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 max-h-96 overflow-y-auto space-y-2">
+              {programs.map((p) => {
+                const isActive = p.id === activeId;
+                const count = Object.values(
+                  (programData[p.id] && programData[p.id].blocks) || {}
+                ).reduce((n, list) => n + (list ? list.length : 0), 0);
+                return (
+                  <div
+                    key={p.id}
+                    className={`flex items-center gap-2 p-2 rounded-lg border ${
+                      isActive ? "border-slate-800 bg-slate-50" : "border-slate-100"
+                    }`}
+                  >
+                    <button
+                      onClick={() => selectProgram(p.id)}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        isActive ? "border-slate-800" : "border-slate-300 hover:border-slate-400"
+                      }`}
+                      aria-label="Sélectionner cette programmation"
+                    >
+                      {isActive && (
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#111" }} />
+                      )}
+                    </button>
+                    <input
+                      value={p.name}
+                      onChange={(e) => renameProgram(p.id, e.target.value)}
+                      className="flex-1 min-w-0 text-sm font-medium text-slate-800 bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-300 rounded px-2 py-1 focus:outline-none"
+                    />
+                    <span className="text-xs text-slate-400 shrink-0">
+                      {count} bloc{count > 1 ? "s" : ""}
+                    </span>
+                    <button
+                      onClick={() => deleteProgram(p.id)}
+                      disabled={programs.length <= 1}
+                      className={`p-1.5 rounded shrink-0 ${
+                        programs.length <= 1
+                          ? "text-slate-300 cursor-not-allowed"
+                          : "text-red-500 hover:bg-red-50"
+                      }`}
+                      aria-label="Supprimer la programmation"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50">
+              <button
+                onClick={addProgram}
+                className="w-full flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-lg text-white"
+                style={{ background: "#111" }}
+              >
+                <Plus size={16} /> Nouvelle programmation
+              </button>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={exportData}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
+                >
+                  <Download size={15} /> Sauvegarde
+                </button>
+                <button
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
+                >
+                  <Upload size={15} /> Importer
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                « Sauvegarde » télécharge toutes tes données en .json · « Importer » les restaure.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Carte d'un bloc ----
+function BlockCard({
+  block, menuOpen, onMenuToggle, onEdit, onDuplicate, onTemplate, onDelete,
+  onDragStart, onDropBefore,
+}) {
+  const c = COLORS[block.color] || COLORS[0];
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDrop={onDropBefore}
+      onDragOver={(e) => e.preventDefault()}
+      className="group relative rounded-lg overflow-visible cursor-grab active:cursor-grabbing"
+      style={{ background: c.bg }}
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg" style={{ background: c.bar }} />
+      <div className="pl-3 pr-2 py-2">
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex items-start gap-1 min-w-0">
+            <GripVertical size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 shrink-0 mt-0.5" />
+            <span className="font-semibold text-sm text-slate-800 break-words">
+              {block.title}
+            </span>
+            {block.duration && (
+              <span className="text-xs text-slate-500 shrink-0">{block.duration}</span>
+            )}
+          </div>
+          <button
+            onClick={onMenuToggle}
+            className="p-0.5 rounded hover:bg-black/5 text-slate-500 shrink-0"
+            aria-label="Options du bloc"
+          >
+            <MoreHorizontal size={16} />
+          </button>
+        </div>
+        {block.content && (
+          <p className="text-xs text-slate-600 mt-1 whitespace-pre-line leading-snug break-words">
+            {block.content}
+          </p>
+        )}
+      </div>
+
+      {menuOpen && (
+        <div
+          className="absolute right-1 top-7 z-30 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1 text-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MenuItem icon={<Pencil size={15} />} label="Éditer" onClick={onEdit} />
+          <MenuItem icon={<Copy size={15} />} label="Dupliquer" onClick={onDuplicate} />
+          <MenuItem icon={<Bookmark size={15} />} label="Enregistrer en modèle" onClick={onTemplate} />
+          <div className="my-1 border-t border-slate-100" />
+          <MenuItem icon={<Trash2 size={15} />} label="Supprimer" danger onClick={onDelete} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({ icon, label, onClick, danger }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-left ${
+        danger ? "text-red-600" : "text-slate-700"
+      }`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+// ---- Éditeur (modal) ----
+function BlockEditor({ editor, templates, categories = [], onChange, onSave, onClose }) {
+  const { draft, mode } = editor;
+  const set = (patch) => onChange({ ...draft, ...patch });
+  const [tplCat, setTplCat] = useState("");
+  const appendCat = (txt) => {
+    const cur = draft.content || "";
+    set({ content: cur ? `${cur}\n${txt}` : txt });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center p-4"
+      style={{ background: "rgba(15,23,42,0.45)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+          <h2 className="font-semibold text-slate-800">
+            {mode === "new" ? "Nouveau bloc" : "Éditer le bloc"}
+          </h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-500">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          {/* Presets rapides */}
+          <div className="flex flex-wrap gap-1.5">
+            {PRESETS.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => set({ title: p.label, color: p.color })}
+                className="px-2.5 py-1 text-xs font-medium rounded-full border hover:bg-slate-50"
+                style={{
+                  borderColor: COLORS[p.color].bar,
+                  color: "#334155",
+                  background: COLORS[p.color].bg,
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Depuis un modèle : catégorie puis modèle */}
+          {templates.length > 0 &&
+            (() => {
+              const catsWithItems = categories.filter((c) =>
+                templates.some((t) => t.categoryId === c.id)
+              );
+              const uncat = templates.filter(
+                (t) => !t.categoryId || !categories.some((c) => c.id === t.categoryId)
+              );
+              const list =
+                tplCat === "__none__"
+                  ? uncat
+                  : tplCat
+                  ? templates.filter((t) => t.categoryId === tplCat)
+                  : [];
+              return (
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                    Partir d'un modèle
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={tplCat}
+                      onChange={(e) => setTplCat(e.target.value)}
+                      className="flex-1 text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+                    >
+                      <option value="">— Catégorie —</option>
+                      {catsWithItems.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                      {uncat.length > 0 && <option value="__none__">Sans nom</option>}
+                    </select>
+                    <select
+                      value=""
+                      disabled={!list.length}
+                      onChange={(e) => {
+                        const t = templates.find((x) => x.id === e.target.value);
+                        if (t)
+                          set({
+                            title: t.title,
+                            color: t.color,
+                            duration: t.duration,
+                            content: t.content,
+                          });
+                      }}
+                      className="flex-1 text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white disabled:opacity-50"
+                    >
+                      <option value="">{list.length ? "— Modèle —" : "—"}</option>
+                      {list.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })()}
+
+          {/* Benchmarks Girls / Heroes */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Insérer un benchmark
+            </label>
+            <select
+              className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+              value=""
+              onChange={(e) => {
+                const bm = BENCHMARKS.find((b) => b.id === e.target.value);
+                if (bm) set({ title: bm.name, content: bm.content });
+              }}
+            >
+              <option value="">— Choisir un benchmark —</option>
+              <optgroup label="Girls">
+                {BENCHMARKS.filter((b) => b.group === "Girls").map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Heroes">
+                {BENCHMARKS.filter((b) => b.group === "Heroes").map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+
+          {/* Catalogues — un menu déroulant par famille (cumulable) */}
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-slate-500">
+              Catalogue (s'ajoute au contenu, cumulable)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {CATALOG_DISCIPLINES.map((g) => (
+                <select
+                  key={g.cat}
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value !== "") appendCat(g.items[Number(e.target.value)]);
+                  }}
+                  className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+                >
+                  <option value="">{g.cat}</option>
+                  {g.items.map((it, idx) => (
+                    <option key={idx} value={idx}>{it}</option>
+                  ))}
+                </select>
+              ))}
+              <select
+                value=""
+                onChange={(e) => {
+                  if (e.target.value === "") return;
+                  const [zi, ii] = e.target.value.split(":").map(Number);
+                  const it = CATALOG_MOBILITY[zi]?.items[ii];
+                  if (it) appendCat(it);
+                }}
+                className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+              >
+                <option value="">Mobilité</option>
+                {CATALOG_MOBILITY.map((z, zi) => (
+                  <optgroup key={zi} label={z.zone}>
+                    {z.items.map((it, ii) => (
+                      <option key={ii} value={`${zi}:${ii}`}>{it}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value === "") return;
+                const [fi, ii] = e.target.value.split(":").map(Number);
+                const it = CATALOG_METHODS[fi]?.items[ii];
+                if (it) appendCat(it.content ? `${it.name}\n${it.content}` : it.name);
+              }}
+              className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+            >
+              <option value="">Méthodes</option>
+              {CATALOG_METHODS.map((f, fi) => (
+                <optgroup key={fi} label={f.fam}>
+                  {f.items.map((it, ii) => (
+                    <option key={ii} value={`${fi}:${ii}`}>{it.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value === "") return;
+                const [fi, ii] = e.target.value.split(":").map(Number);
+                const it = CATALOG_QUALITIES[fi]?.items[ii];
+                if (it) appendCat(it.content ? `${it.name}\n${it.content}` : it.name);
+              }}
+              className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
+            >
+              <option value="">Qualités</option>
+              {CATALOG_QUALITIES.map((f, fi) => (
+                <optgroup key={fi} label={f.fam}>
+                  {f.items.map((it, ii) => (
+                    <option key={ii} value={`${fi}:${ii}`}>{it.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* Titre + durée */}
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-500 mb-1">Titre</label>
+              <input
+                autoFocus
+                value={draft.title}
+                onChange={(e) => set({ title: e.target.value })}
+                placeholder="Warmup, Force, Metcon…"
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div className="w-24">
+              <label className="block text-xs font-medium text-slate-500 mb-1">Durée</label>
+              <input
+                value={draft.duration}
+                onChange={(e) => set({ duration: e.target.value })}
+                placeholder="12'"
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          </div>
+
+          {/* Couleur */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Couleur</label>
+            <div className="flex gap-2">
+              {COLORS.map((c, i) => (
+                <button
+                  key={c.name}
+                  onClick={() => set({ color: i })}
+                  title={c.name}
+                  className={`w-7 h-7 rounded-full border-2 ${
+                    draft.color === i ? "border-slate-800" : "border-transparent"
+                  }`}
+                  style={{ background: c.bg }}
+                >
+                  <span className="block w-full h-full rounded-full" style={{ boxShadow: `inset 0 0 0 2px ${c.bar}` }} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Contenu */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Contenu</label>
+            <textarea
+              value={draft.content}
+              onChange={(e) => set({ content: e.target.value })}
+              rows={6}
+              placeholder={"3 rounds:\n10 push-ups\n15 air squats\n200m run"}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-100 bg-slate-50">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onSave}
+            className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+            style={{ background: "#111" }}
+          >
+            {mode === "new" ? "Ajouter le bloc" : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function Gate() {
+  const [session, setSession] = useState(undefined); // undefined = chargement
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    supa.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: sub } = supa.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const signIn = async () => {
+    if (!email || !pw) return;
+    setBusy(true); setErr("");
+    const { error } = await supa.auth.signInWithPassword({
+      email: email.trim(), password: pw,
+    });
+    if (error) setErr("Identifiants incorrects ou compte introuvable.");
+    setBusy(false);
+  };
+
+  if (session === undefined)
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center text-slate-400">
+        Chargement…
+      </div>
+    );
+
+  if (session) return <App />;
+
+  return (
+    <div className="w-full min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold mb-4" style={{ background: "#111" }}>CP</div>
+        <h1 className="text-xl font-semibold text-slate-800 mb-1">Coach Prog</h1>
+        <p className="text-sm text-slate-400 mb-6">Connecte-toi pour accéder à ta programmation.</p>
+        <input
+          type="email" inputMode="email" autoCapitalize="none" autoCorrect="off"
+          placeholder="Email" value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full mb-3 px-3 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+        />
+        <input
+          type="password" placeholder="Mot de passe" value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") signIn(); }}
+          className="w-full mb-3 px-3 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+        />
+        {err && <p className="text-sm text-red-500 mb-3">{err}</p>}
+        <button
+          onClick={signIn} disabled={busy}
+          className="w-full px-4 py-2.5 text-sm font-medium rounded-lg text-white disabled:opacity-60"
+          style={{ background: "#111" }}
+        >
+          {busy ? "Connexion…" : "Se connecter"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<Gate />);
+
+</script>
+</body>
+</html>
