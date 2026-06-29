@@ -55,6 +55,8 @@ import {
   Upload,
   Share2,
   FilePlus,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 const SUPABASE_URL = "https://xfltsucwsdpccwnomgnt.supabase.co";
@@ -638,6 +640,8 @@ function App() {
   const [presentDate, setPresentDate] = useState(null); // Date | null (mode présentation)
   const fileInputRef = useRef(null);
   const programInputRef = useRef(null);
+  const [pendingCourses, setPendingCourses] = useState({});
+  const [courseMenuFor, setCourseMenuFor] = useState(null);
   const dragRef = useRef(null); // { fromKey, blockId }
 
   // ---- Données du programme actif (blocks / doneDays dérivés) ----
@@ -797,6 +801,12 @@ function App() {
     const clean = { ...draft, title: draft.title.trim() || "Bloc" };
     if (mode === "new") {
       setList(dateKey, [...getList(dateKey), { ...clean, id: newId() }]);
+      if (clean.courseId) {
+        setPendingCourses((pc) => ({
+          ...pc,
+          [dateKey]: (pc[dateKey] || []).filter((c) => c.id !== clean.courseId),
+        }));
+      }
     } else {
       setList(
         dateKey,
@@ -822,19 +832,12 @@ function App() {
   };
 
   // ---- Cours (encadré regroupant plusieurs blocs) ----
-  const addCourse = (dateKey) => {
+  const addCourse = (dateKey, name) => {
     const cid = "co" + Math.random().toString(36).slice(2, 7);
-    const name = "Nouveau cours";
-    const mk = (title, color) => ({
-      id: newId(), title, duration: "", color, content: "",
-      courseId: cid, courseName: name,
-    });
-    setList(dateKey, [
-      ...getList(dateKey),
-      mk("WOD", 3),
-      mk("ENDUR'OX", 4),
-      mk("MUSCU FORCE", 7),
-    ]);
+    setPendingCourses((pc) => ({
+      ...pc,
+      [dateKey]: [...(pc[dateKey] || []), { id: cid, name }],
+    }));
   };
   const renameCourse = (dateKey, courseId, name) =>
     setList(
@@ -846,6 +849,26 @@ function App() {
   const deleteCourse = (dateKey, courseId) => {
     setMenuFor(null);
     setList(dateKey, getList(dateKey).filter((b) => b.courseId !== courseId));
+  };
+  const moveBlock = (dateKey, blockId, dir) => {
+    setMenuFor(null);
+    const list = getList(dateKey);
+    const idx = list.findIndex((b) => b.id === blockId);
+    if (idx < 0) return;
+    const cid = list[idx].courseId || null;
+    const sib = [];
+    list.forEach((b, i) => {
+      if ((b.courseId || null) === cid) sib.push(i);
+    });
+    const pos = sib.indexOf(idx);
+    const target = dir === "up" ? pos - 1 : pos + 1;
+    if (target < 0 || target >= sib.length) return;
+    const j = sib[target];
+    const next = [...list];
+    const tmp = next[idx];
+    next[idx] = next[j];
+    next[j] = tmp;
+    setList(dateKey, next);
   };
 
   const saveAsTemplate = (block) => {
@@ -1545,6 +1568,8 @@ function App() {
                         onDuplicate={() => duplicateBlock(k, block)}
                         onTemplate={() => saveAsTemplate(block)}
                         onDelete={() => deleteBlock(k, block.id)}
+                        onMoveUp={() => moveBlock(k, block.id, "up")}
+                        onMoveDown={() => moveBlock(k, block.id, "down")}
                         onDragStart={() => onDragStart(k, block.id)}
                         onDropBefore={(e) => {
                           e.stopPropagation();
@@ -1578,21 +1603,57 @@ function App() {
                         out.push(renderCard(block, bi));
                       }
                     });
+                    (pendingCourses[k] || []).forEach((pc) => {
+                      if (seen.has(pc.id)) return;
+                      out.push(
+                        <CourseFrame
+                          key={"pending-" + pc.id}
+                          name={pc.name}
+                          onRename={(val) =>
+                            setPendingCourses((all) => ({
+                              ...all,
+                              [k]: (all[k] || []).map((c) =>
+                                c.id === pc.id ? { ...c, name: val } : c
+                              ),
+                            }))
+                          }
+                          onDelete={() =>
+                            setPendingCourses((all) => ({
+                              ...all,
+                              [k]: (all[k] || []).filter((c) => c.id !== pc.id),
+                            }))
+                          }
+                          onAddBlock={() => openNew(k, pc.id, pc.name)}
+                        />
+                      );
+                    });
                     return out;
                   })()}
 
-                  <button
-                    onClick={() => openNew(k)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg border border-dashed border-slate-200 transition-colors"
-                  >
-                    <Plus size={15} /> Ajouter un bloc
-                  </button>
-                  <button
-                    onClick={() => addCourse(k)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg border border-dashed border-slate-300 transition-colors"
-                  >
-                    <Plus size={15} /> Ajouter un cours
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setCourseMenuFor(courseMenuFor === k ? null : k)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg border border-dashed border-slate-300 transition-colors"
+                    >
+                      <Plus size={15} /> Ajouter un cours
+                    </button>
+                    {courseMenuFor === k && (
+                      <div className="mt-1 space-y-1">
+                        {["WOD", "ENDUR'OX", "MUSCU FORCE"].map((ct) => (
+                          <button
+                            key={ct}
+                            onClick={() => {
+                              addCourse(k, ct);
+                              setCourseMenuFor(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
+                          >
+                            {ct}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -2487,7 +2548,7 @@ function App() {
 // ---- Carte d'un bloc ----
 function BlockCard({
   block, menuOpen, onMenuToggle, onEdit, onDuplicate, onTemplate, onDelete,
-  onDragStart, onDropBefore,
+  onMoveUp, onMoveDown, onDragStart, onDropBefore,
 }) {
   const c = COLORS[block.color] || COLORS[0];
   return (
@@ -2532,6 +2593,8 @@ function BlockCard({
           onClick={(e) => e.stopPropagation()}
         >
           <MenuItem icon={<Pencil size={15} />} label="Éditer" onClick={onEdit} />
+          <MenuItem icon={<ArrowUp size={15} />} label="Monter" onClick={onMoveUp} />
+          <MenuItem icon={<ArrowDown size={15} />} label="Descendre" onClick={onMoveDown} />
           <MenuItem icon={<Copy size={15} />} label="Dupliquer" onClick={onDuplicate} />
           <MenuItem icon={<Bookmark size={15} />} label="Enregistrer en modèle" onClick={onTemplate} />
           <div className="my-1 border-t border-slate-100" />
