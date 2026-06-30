@@ -398,7 +398,10 @@ const {
   ArrowUp,
   ArrowDown,
   Lightbulb,
-  Undo2
+  Undo2,
+  Redo2,
+  Sparkles,
+  Dumbbell
 } = window.LucideReact;
 const SUPABASE_URL = "https://xfltsucwsdpccwnomgnt.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dGJ5JZyOQ1On-rwtDmyQbw_gDQhqjif";
@@ -1173,7 +1176,126 @@ function migrateCycles(pd = {}) {
   return out;
 }
 
-// ---- Thèmes de "blocs de travail" (périodisation, vue mois) ----
+// ---- Créateur de séance ----
+function _gPick(a) {
+  return a[Math.floor(Math.random() * a.length)];
+}
+function _gSample(a, n) {
+  const c = [...a],
+    o = [];
+  while (c.length && o.length < n) o.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
+  return o;
+}
+function _cfFam(prefix) {
+  const cf = (CATALOG_DISCIPLINES.find(d => d.cat === "CrossFit") || {
+    items: []
+  }).items;
+  return cf.filter(s => s.indexOf(prefix + " \u2014 ") === 0).map(s => s.split(" \u2014 ")[1]);
+}
+function _muscuList() {
+  return (CATALOG_DISCIPLINES.find(d => d.cat === "Musculation") || {
+    items: []
+  }).items;
+}
+function _pastBlocksFor(programData, names) {
+  const out = [];
+  Object.values(programData || {}).forEach(p => {
+    Object.values(p && p.blocks || {}).forEach(list => {
+      (list || []).forEach(b => {
+        const cn = ((b.courseName || "") + " " + (b.title || "")).toUpperCase();
+        if (names.some(n => cn.indexOf(n) >= 0) && (b.content || "").trim()) out.push({
+          title: b.title || "",
+          content: b.content || ""
+        });
+      });
+    });
+  });
+  return out;
+}
+function _movesSeenIn(past, pool) {
+  const txt = past.map(b => b.title + " " + b.content).join(" \n ").toLowerCase();
+  return pool.filter(m => txt.indexOf(m.toLowerCase()) >= 0);
+}
+function generateSession(opts) {
+  const type = opts.type;
+  const libre = !!opts.libre;
+  const programData = opts.programData || {};
+  const forcedList = (opts.forced || "").split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const blocks = [];
+  const add = (title, content, color) => blocks.push({
+    title,
+    content,
+    color
+  });
+  if (type === "wod") {
+    add("WARM UP", "3 tours :\n- 200 m course\n- 10 air squats\n- 10 push-ups\n- 10 sit-ups", 0);
+    const lifts = _cfFam("Squat").concat(_cfFam("Press"), _cfFam("Hinge"), _cfFam("Snatch"), _cfFam("Clean"));
+    const lift = _gPick(lifts.length ? lifts : ["Back Squat"]);
+    add("STRENGTH", lift + "\n" + _gPick(["5 \u00d7 5", "5 \u00d7 3", "5-3-1", "4 \u00d7 6", "3 \u00d7 5"]) + " @ ___ kg / %", 2);
+    const past = _pastBlocksFor(programData, ["WOD", "METCON", "AMRAP", "EMOM", "FOR TIME"]);
+    if (!libre && past.length && Math.random() < 0.55) {
+      let c = _gPick(past).content;
+      if (forcedList.length) c += "\n+ " + forcedList.join(", ");
+      add("METCON", c, 3);
+    } else {
+      const cardio = _cfFam("Cardio").concat(_cfFam("Cardio PdC"));
+      const gym = _cfFam("Gym tirage").concat(_cfFam("Gym pouss\u00e9e"), _cfFam("Core"));
+      const wl = _cfFam("Jerk").concat(_cfFam("KB"));
+      let allMoves = cardio.concat(gym, wl);
+      if (!libre) {
+        const seen = _movesSeenIn(past, allMoves);
+        if (seen.length >= 4) allMoves = seen;
+      }
+      const fmt = _gPick(["AMRAP", "EMOM", "For Time", "Chipper"]);
+      const dur = _gPick([8, 10, 12, 15, 20]);
+      let moves = forcedList.concat(_gSample(allMoves, 4));
+      moves = moves.slice(0, Math.max(2, Math.min(4, moves.length)));
+      let body;
+      if (fmt === "AMRAP") body = "AMRAP " + dur + "'\n" + moves.map(m => "- ___ " + m).join("\n");else if (fmt === "EMOM") body = "EMOM " + dur + "'\n" + moves.map((m, i) => "Min " + (i + 1) + " : ___ " + m).join("\n");else if (fmt === "For Time") body = "For Time \u2014 21-15-9\n" + moves.slice(0, 2).map(m => "- " + m).join("\n");else body = "Chipper\n" + moves.map(m => "- ___ " + m).join("\n");
+      add("METCON", body, 3);
+    }
+    return {
+      courseName: "WOD",
+      blocks
+    };
+  }
+  if (type === "endurox") {
+    add("WARM UP", "10' footing progressif\n+ mobilit\u00e9 hanches / chevilles", 0);
+    const stations = ["SkiErg 1000 m", "Sled Push 50 m", "Sled Pull 50 m", "Burpee Broad Jumps 80 m", "Rowing 1000 m", "Farmers Carry 200 m", "Sandbag Lunges 100 m", "Wall Balls 100"];
+    const past = _pastBlocksFor(programData, ["ENDUR", "HYROX"]);
+    if (!libre && past.length && Math.random() < 0.55) {
+      let c = _gPick(past).content;
+      if (forcedList.length) c += "\n+ " + forcedList.join(", ");
+      add("ENDUR'OX", c, 1);
+    } else {
+      const chosen = forcedList.concat(_gSample(stations, Math.max(3, 5 - forcedList.length)));
+      add("ENDUR'OX", "Format Hyrox \u2014 1 km course avant chaque station :\n" + chosen.map((s, i) => i + 1 + ". " + s).join("\n"), 1);
+    }
+    add("ACCESSOIRE", "Gainage 3 \u00d7 :\n- 45\" planche\n- 30\" side plank / c\u00f4t\u00e9", 6);
+    return {
+      courseName: "ENDUR'OX",
+      blocks
+    };
+  }
+  add("WARM UP", "Mobilit\u00e9 + activation\n2 tours l\u00e9gers du mouvement principal", 0);
+  const mainLifts = ["Squat", "Soulev\u00e9 de terre", "D\u00e9velopp\u00e9 couch\u00e9", "D\u00e9velopp\u00e9 militaire", "Soulev\u00e9 de terre roumain", "Squat avant"];
+  const main = forcedList[0] || _gPick(mainLifts);
+  add("MUSCU FORCE", main + "\n" + _gPick(["5 \u00d7 5 @ 80%", "4 \u00d7 4 @ 85%", "3 \u00d7 3 @ 90%", "5 \u00d7 3 @ 82%", "6 \u00d7 2 @ 88%"]), 7);
+  const past = _pastBlocksFor(programData, ["MUSCU", "FORCE"]);
+  let accPool = _muscuList();
+  if (!libre) {
+    const seen = _movesSeenIn(past, accPool);
+    if (seen.length >= 3) accPool = seen;
+  }
+  const acc = forcedList.slice(1).concat(_gSample(accPool, 3)).slice(0, 3);
+  add("ACCESSOIRE", "Accessoires 3-4 \u00d7 8-12 :\n" + acc.map(m => "- " + m).join("\n"), 5);
+  return {
+    courseName: "MUSCU FORCE",
+    blocks
+  };
+}
+
+// ---- Th\u00e8mes de "blocs de travail" (p\u00e9riodisation, vue mois) ----
 const THEMES = [{
   id: "gym",
   label: "Gym",
@@ -1312,6 +1434,8 @@ function App() {
   const [courseMenuFor, setCourseMenuFor] = useState(null);
   const [blockClipboard, setBlockClipboard] = useState(null);
   const undoRef = useRef([]);
+  const redoRef = useRef([]);
+  const [generator, setGenerator] = useState(null);
   const dragRef = useRef(null); // { fromKey, blockId }
 
   // ---- Données du programme actif (blocks / doneDays dérivés) ----
@@ -1327,6 +1451,7 @@ function App() {
   const setBlocks = updater => {
     undoRef.current.push(blocks);
     if (undoRef.current.length > 80) undoRef.current.shift();
+    redoRef.current = [];
     setProgramData(pd => {
       const cur = pd[activeId] || {
         blocks: {},
@@ -1345,6 +1470,8 @@ function App() {
   const undo = () => {
     const prev = undoRef.current.pop();
     if (prev === undefined) return;
+    redoRef.current.push(blocks);
+    if (redoRef.current.length > 80) redoRef.current.shift();
     setProgramData(pd => {
       const cur = pd[activeId] || {
         blocks: {},
@@ -1359,8 +1486,28 @@ function App() {
       };
     });
   };
+  const redo = () => {
+    const next = redoRef.current.pop();
+    if (next === undefined) return;
+    undoRef.current.push(blocks);
+    if (undoRef.current.length > 80) undoRef.current.shift();
+    setProgramData(pd => {
+      const cur = pd[activeId] || {
+        blocks: {},
+        doneDays: {}
+      };
+      return {
+        ...pd,
+        [activeId]: {
+          ...cur,
+          blocks: next
+        }
+      };
+    });
+  };
   useEffect(() => {
     undoRef.current = [];
+    redoRef.current = [];
   }, [activeId]);
   const setDoneDays = updater => setProgramData(pd => {
     const cur = pd[activeId] || {
@@ -1648,6 +1795,23 @@ function App() {
       delete nb.courseName;
     }
     setList(dateKey, [...getList(dateKey), nb]);
+    setBlockClipboard(null);
+  };
+  const insertGeneratedSession = (result, dateKey) => {
+    const cid = "c" + Math.random().toString(36).slice(2, 9);
+    const nbs = result.blocks.map(b => ({
+      id: newId(),
+      title: b.title,
+      content: b.content,
+      color: b.color,
+      courseId: cid,
+      courseName: result.courseName
+    }));
+    setBlocks(bs => ({
+      ...bs,
+      [dateKey]: [...(bs[dateKey] || []), ...nbs]
+    }));
+    setGenerator(null);
   };
   const saveAsTemplate = block => {
     setMenuFor(null);
@@ -2236,11 +2400,29 @@ function App() {
   }, "· ", templates.length, " modèle", templates.length > 1 ? "s" : ""), (dayClipboard || weekClipboard) && /*#__PURE__*/React.createElement("span", {
     className: "text-xs text-blue-500"
   }, "· ", weekClipboard ? "semaine copiée" : "jour copié"), viewMode === "week" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setGenerator({
+      type: null,
+      forced: "",
+      libre: false,
+      result: null
+    }),
+    className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg text-white",
+    style: {
+      background: "#4f46e5"
+    }
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    size: 16
+  }), " Créateur"), /*#__PURE__*/React.createElement("button", {
     onClick: undo,
     className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
   }, /*#__PURE__*/React.createElement(Undo2, {
     size: 16
   }), " Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: redo,
+    className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
+  }, /*#__PURE__*/React.createElement(Redo2, {
+    size: 16
+  }), " Rétablir"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setConfirmReset(true),
     className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
   }, /*#__PURE__*/React.createElement(RotateCcw, {
@@ -2921,7 +3103,112 @@ function App() {
     })),
     onSave: saveEditor,
     onClose: () => setEditor(null)
-  }), confirmReset && /*#__PURE__*/React.createElement("div", {
+  }), generator && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+    style: {
+      background: "rgba(15,23,42,0.45)"
+    },
+    onClick: () => setGenerator(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-lg max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-semibold text-slate-800 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    size: 18,
+    className: "text-indigo-500"
+  }), " Créateur de séance"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setGenerator(null),
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 18
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "px-5 py-4 space-y-4 overflow-y-auto flex-1"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1.5"
+  }, "Quel type de cours souhaitez-vous créer ?"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-2"
+  }, [["wod", "WOD", "CrossFit"], ["endurox", "Endur'ox", "Hyrox"], ["muscu", "Muscu Force", "Force / Muscu"]].map(opt => /*#__PURE__*/React.createElement("button", {
+    key: opt[0],
+    onClick: () => setGenerator(g => ({
+      ...g,
+      type: opt[0],
+      result: null
+    })),
+    className: "px-2 py-2.5 rounded-xl border text-sm font-semibold flex flex-col items-center gap-0.5 " + (generator.type === opt[0] ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-slate-200 hover:bg-slate-50 text-slate-600")
+  }, opt[1], /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-normal text-slate-400"
+  }, opt[2]))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Un ou des mouvements particuliers dans la séance ?"), /*#__PURE__*/React.createElement("textarea", {
+    value: generator.forced || "",
+    onChange: e => setGenerator(g => ({
+      ...g,
+      forced: e.target.value
+    })),
+    placeholder: "ex. Thrusters, Pull-ups…  (un par ligne ou séparés par des virgules)",
+    rows: 2,
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setGenerator(g => ({
+      ...g,
+      libre: !g.libre,
+      result: null
+    })),
+    className: "w-full px-3 py-2 text-sm font-medium rounded-lg border " + (generator.libre ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-slate-200 text-slate-600 hover:bg-slate-50")
+  }, "Choix libre ", generator.libre ? "✓" : "", /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-normal text-slate-400"
+  }, " — pioche dans tout le catalogue")), /*#__PURE__*/React.createElement("button", {
+    disabled: !generator.type,
+    onClick: () => setGenerator(g => ({
+      ...g,
+      result: generateSession({
+        type: g.type,
+        forced: g.forced,
+        libre: g.libre,
+        programData
+      })
+    })),
+    className: "w-full px-4 py-2.5 text-sm font-semibold rounded-lg text-white disabled:opacity-50",
+    style: {
+      background: "#111"
+    }
+  }, "Générer la séance"), generator.result && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3 pt-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-semibold text-slate-500"
+  }, "Aperçu — ", generator.result.courseName), generator.result.blocks.map((b, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "rounded-lg border border-slate-200 p-3",
+    style: {
+      background: COLORS[b.color].bg
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-slate-800"
+  }, b.title), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-600 whitespace-pre-wrap mt-0.5"
+  }, b.content))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setGenerator(g => ({
+      ...g,
+      result: generateSession({
+        type: g.type,
+        forced: g.forced,
+        libre: g.libre,
+        programData
+      })
+    })),
+    className: "w-full px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+  }, "Régénérer"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-medium text-slate-500 pt-1"
+  }, "Ajouter au jour :"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-7 gap-1"
+  }, weekDates.map((d, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => insertGeneratedSession(generator.result, keyOf(d)),
+    className: "px-1 py-2 rounded-lg border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-[11px] font-medium text-slate-600 text-center"
+  }, ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"][i], /*#__PURE__*/React.createElement("br", null), d.getDate()))))))), confirmReset && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-40 flex items-center justify-center p-4",
     style: {
       background: "rgba(15,23,42,0.45)"
@@ -3414,10 +3701,10 @@ function BlockEditor({
     },
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
-    className: "w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden",
+    className: "w-full max-w-md max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden",
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between px-5 py-3 border-b border-slate-100"
+    className: "flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "font-semibold text-slate-800"
   }, mode === "new" ? "Nouveau bloc" : "Éditer le bloc"), /*#__PURE__*/React.createElement("button", {
@@ -3426,7 +3713,7 @@ function BlockEditor({
   }, /*#__PURE__*/React.createElement(X, {
     size: 18
   }))), /*#__PURE__*/React.createElement("div", {
-    className: "px-5 py-4 space-y-4"
+    className: "px-5 py-4 space-y-4 overflow-y-auto flex-1"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap gap-1.5"
   }, PRESETS.map(p => /*#__PURE__*/React.createElement("button", {
