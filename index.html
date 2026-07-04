@@ -1375,13 +1375,28 @@ function escapeHtml(s) {
     '"': "&quot;"
   })[c]);
 }
-function buildPrintableHTML(weekDates, blocksByDate, weekLabel) {
+function buildPrintableHTML(weekDates, blocksByDate, weekLabel, programName) {
   const days = weekDates.map((d, i) => {
     const list = blocksByDate[keyOf(d)] || [];
-    const inner = list.length ? list.map(b => {
+    const renderBlk = b => {
       const c = COLORS[b.color] || COLORS[0];
-      return `<div class="blk" style="background:${c.bg};border-left:5px solid ${c.bar};"><div class="blk-h"><strong>${escapeHtml(b.title)}</strong>${b.duration ? ` <span>${escapeHtml(b.duration)}</span>` : ""}</div>${b.content ? `<pre>${escapeHtml(b.content)}</pre>` : ""}</div>`;
-    }).join("") : `<div class="empty">—</div>`;
+      return `<div class="blk" style="background:${c.bg};border-left:5px solid ${c.bar};"><div class="blk-h"><strong>${escapeHtml(b.title)}</strong>${b.duration ? ` <span>${escapeHtml(b.duration)}</span>` : ""}</div>${b.content ? `<pre>${escapeHtml(b.content)}</pre>` : ""}${b.tip ? `<div class="tip">💡 ${escapeHtml(b.tip)}</div>` : ""}</div>`;
+    };
+    let inner;
+    if (!list.length) {
+      inner = `<div class="empty">—</div>`;
+    } else {
+      const seen = {};
+      inner = list.map(b => {
+        if (b.courseId) {
+          if (seen[b.courseId]) return "";
+          seen[b.courseId] = true;
+          const members = list.filter(x => x.courseId === b.courseId);
+          return `<div class="course"><div class="course-h">${escapeHtml(b.courseName || "Cours")}</div>${members.map(renderBlk).join("")}</div>`;
+        }
+        return renderBlk(b);
+      }).join("");
+    }
     return `<section class="day"><h2>${DAYS_FR[i]} ${d.getDate()}</h2>${inner}</section>`;
   }).join("");
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Planning ${escapeHtml(weekLabel)}</title>
@@ -1397,9 +1412,12 @@ function buildPrintableHTML(weekDates, blocksByDate, weekLabel) {
   .blk-h span{color:#475569;font-weight:600;}
   .blk pre{font-family:inherit;font-size:10px;white-space:pre-wrap;margin:4px 0 0;color:#334155;}
   .empty{color:#cbd5e1;font-size:12px;}
+  .course{border:1px solid #cbd5e1;border-radius:8px;padding:6px;margin-bottom:8px;background:#f8fafc;break-inside:avoid;}
+  .course-h{font-size:11px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:.02em;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #e2e8f0;}
+  .tip{font-size:10px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:3px 6px;margin-top:4px;}
   @page{size:landscape;margin:10mm;}
 </style></head>
-<body><h1>Planning — ${escapeHtml(weekLabel)}</h1><div class="grid">${days}</div></body></html>`;
+<body><h1>${programName ? escapeHtml(programName) + " — " : ""}Planning ${escapeHtml(weekLabel)}</h1><div class="grid">${days}</div></body></html>`;
 }
 function App() {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -1977,7 +1995,7 @@ function App() {
   };
   const exportPlanning = () => {
     try {
-      const html = buildPrintableHTML(weekDates, blocks, weekLabel);
+      const html = buildPrintableHTML(weekDates, blocks, weekLabel, activeName);
       const blob = new Blob([html], {
         type: "text/html"
       });
