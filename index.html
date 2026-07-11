@@ -401,7 +401,9 @@ const {
   Undo2,
   Redo2,
   Sparkles,
-  Dumbbell
+  Dumbbell,
+  Trophy,
+  Users
 } = window.LucideReact;
 const SUPABASE_URL = "https://xfltsucwsdpccwnomgnt.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dGJ5JZyOQ1On-rwtDmyQbw_gDQhqjif";
@@ -1454,6 +1456,16 @@ function App() {
   const undoRef = useRef([]);
   const redoRef = useRef([]);
   const [generator, setGenerator] = useState(null);
+  const [records, setRecords] = useState({});
+  const [recordsOpen, setRecordsOpen] = useState(false);
+  const [recordCat, setRecordCat] = useState("haltero");
+  const [recordDetail, setRecordDetail] = useState(null);
+  const [recordEditor, setRecordEditor] = useState(null);
+  const [role, setRole] = useState("coach");
+  const [athletesOpen, setAthletesOpen] = useState(false);
+  const [athletes, setAthletes] = useState(null);
+  const [athleteDetail, setAthleteDetail] = useState(null);
+  const [athleteCat, setAthleteCat] = useState("haltero");
   const dragRef = useRef(null); // { fromKey, blockId }
 
   // ---- Données du programme actif (blocks / doneDays dérivés) ----
@@ -1600,6 +1612,7 @@ function App() {
             setActiveId(data.activeId || data.programs[0] && data.programs[0].id);
             setTemplates(data.templates || []);
             setTemplateCategories(data.templateCategories || []);
+            setRecords(data.records || {});
           } else {
             // ancien format { blocks, templates, doneDays } → migration
             const pid = newProgramId();
@@ -1644,7 +1657,8 @@ function App() {
           programData,
           activeId,
           templates,
-          templateCategories
+          templateCategories,
+          records
         }));
         setSaveStatus("saved");
       } catch (e) {
@@ -1652,7 +1666,7 @@ function App() {
       }
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [programs, programData, activeId, templates, templateCategories, loaded]);
+  }, [programs, programData, activeId, templates, templateCategories, records, loaded]);
   const monday = mondayOf(weekOffset);
   const weekDates = Array.from({
     length: 7
@@ -1815,6 +1829,92 @@ function App() {
     setList(dateKey, [...getList(dateKey), nb]);
     setBlockClipboard(null);
   };
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const {
+          data: u
+        } = await supa.auth.getUser();
+        const uid = u && u.user && u.user.id;
+        if (!uid) return;
+        const {
+          data: prof
+        } = await supa.from("profiles").select("role").eq("user_id", uid).maybeSingle();
+        if (!cancelled && prof && prof.role) setRole(prof.role);
+      } catch (e) {}
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const loadAthletes = async () => {
+    setAthletes(null);
+    try {
+      const {
+        data: u
+      } = await supa.auth.getUser();
+      const uid = u && u.user && u.user.id;
+      const {
+        data: profs
+      } = await supa.from("profiles").select("user_id, email, name").eq("coach_id", uid);
+      const out = [];
+      for (const p of profs || []) {
+        let recs = {};
+        try {
+          const {
+            data: st
+          } = await supa.from("app_state").select("data").eq("user_id", p.user_id).maybeSingle();
+          recs = st && st.data && st.data.records || {};
+        } catch (e) {}
+        out.push({
+          id: p.user_id,
+          email: p.email,
+          name: p.name,
+          records: recs
+        });
+      }
+      setAthletes(out);
+    } catch (e) {
+      setAthletes([]);
+    }
+  };
+  const addRecordMovement = (catId, name) => {
+    const rid = "r" + Math.random().toString(36).slice(2, 9);
+    setRecords(r => ({
+      ...r,
+      [catId]: [...(r[catId] || []), {
+        id: rid,
+        name: (name || "").trim() || "Mouvement",
+        entries: []
+      }]
+    }));
+    return rid;
+  };
+  const addRecordEntry = (catId, recordId, value, date) => {
+    setRecords(r => ({
+      ...r,
+      [catId]: (r[catId] || []).map(m => m.id === recordId ? {
+        ...m,
+        entries: [{
+          id: "e" + Math.random().toString(36).slice(2, 9),
+          date: date || new Date().toISOString().slice(0, 10),
+          value: (value || "").trim()
+        }, ...m.entries].sort((a, b) => a.date < b.date ? 1 : -1)
+      } : m)
+    }));
+  };
+  const deleteRecordMovement = (catId, recordId) => setRecords(r => ({
+    ...r,
+    [catId]: (r[catId] || []).filter(m => m.id !== recordId)
+  }));
+  const deleteRecordEntry = (catId, recordId, entryId) => setRecords(r => ({
+    ...r,
+    [catId]: (r[catId] || []).map(m => m.id === recordId ? {
+      ...m,
+      entries: m.entries.filter(e => e.id !== entryId)
+    } : m)
+  }));
   const insertGeneratedSession = (result, dateKey) => {
     const cid = "c" + Math.random().toString(36).slice(2, 9);
     const nbs = result.blocks.map(b => ({
@@ -2350,7 +2450,21 @@ function App() {
   }, "Mois"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setViewMode("cycle"),
     className: `px-3 py-1.5 font-medium border-l border-slate-200 ${viewMode === "cycle" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-50"}`
-  }, "Cycle")), /*#__PURE__*/React.createElement("div", {
+  }, "Cycle"), role === "client" && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRecordsOpen(true),
+    className: "px-3 py-1.5 font-medium border-l border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 14
+  }), " Records"), role === "coach" && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAthletesOpen(true);
+      setAthleteDetail(null);
+      loadAthletes();
+    },
+    className: "px-3 py-1.5 font-medium border-l border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 14
+  }), " Athlètes")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center rounded-lg border border-slate-200 bg-white"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => viewMode === "month" ? setMonthOffset(m => m - 1) : setWeekOffset(w => w - 1),
@@ -2934,7 +3048,309 @@ function App() {
         background: "#111"
       }
     }, cycleEdit.mode === "new" ? "Créer le cycle" : "Enregistrer")))));
-  })(), presentDate && (() => {
+  })(), recordsOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, recordDetail && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRecordDetail(null),
+    className: "p-1 rounded hover:bg-slate-100"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20
+  })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 18,
+    className: "text-amber-500"
+  }), " Mes records")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setRecordsOpen(false);
+      setRecordDetail(null);
+    },
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 20
+  }))), (() => {
+    const RC = [{
+      id: "haltero",
+      label: "Haltérophilie"
+    }, {
+      id: "gym",
+      label: "Gymnastique"
+    }, {
+      id: "course",
+      label: "Course à pied"
+    }, {
+      id: "muscu",
+      label: "Musculation"
+    }];
+    const list = records[recordCat] || [];
+    if (recordDetail) {
+      const mv = list.find(m => m.id === recordDetail);
+      if (!mv) return null;
+      return /*#__PURE__*/React.createElement("div", {
+        className: "max-w-xl mx-auto px-4 py-4"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between"
+      }, /*#__PURE__*/React.createElement("h2", {
+        className: "text-xl font-bold text-slate-900"
+      }, mv.name), /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          deleteRecordMovement(recordCat, mv.id);
+          setRecordDetail(null);
+        },
+        className: "text-red-500 text-sm flex items-center gap-1 hover:underline"
+      }, /*#__PURE__*/React.createElement(Trash2, {
+        size: 15
+      }), " Supprimer")), /*#__PURE__*/React.createElement("div", {
+        className: "mt-3 rounded-2xl bg-slate-900 text-white p-5 text-center"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-[11px] uppercase tracking-wide text-slate-300"
+      }, "Record actuel"), /*#__PURE__*/React.createElement("div", {
+        className: "text-3xl font-bold mt-1"
+      }, mv.entries[0] ? mv.entries[0].value : "—"), mv.entries[0] && /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-slate-400 mt-1"
+      }, mv.entries[0].date)), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between mt-5 mb-2"
+      }, /*#__PURE__*/React.createElement("h3", {
+        className: "font-semibold text-slate-700"
+      }, "Historique"), /*#__PURE__*/React.createElement("button", {
+        onClick: () => setRecordEditor({
+          mode: "entry",
+          recordId: mv.id,
+          value: "",
+          date: new Date().toISOString().slice(0, 10)
+        }),
+        className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
+        style: {
+          background: "#111"
+        }
+      }, /*#__PURE__*/React.createElement(Plus, {
+        size: 15
+      }), " Ajouter")), mv.entries.length === 0 ? /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-slate-400 py-6 text-center"
+      }, "Aucun record enregistré pour l'instant.") : /*#__PURE__*/React.createElement("div", {
+        className: "space-y-1"
+      }, mv.entries.map(e => /*#__PURE__*/React.createElement("div", {
+        key: e.id,
+        className: "flex items-center justify-between py-2.5 px-3 rounded-lg border border-slate-100"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-slate-500"
+      }, e.date), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "font-semibold text-slate-800"
+      }, e.value), /*#__PURE__*/React.createElement("button", {
+        onClick: () => deleteRecordEntry(recordCat, mv.id, e.id),
+        className: "text-slate-300 hover:text-red-500"
+      }, /*#__PURE__*/React.createElement(Trash2, {
+        size: 15
+      })))))));
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "max-w-xl mx-auto px-4 py-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-2 overflow-x-auto pb-2"
+    }, RC.map(c => /*#__PURE__*/React.createElement("button", {
+      key: c.id,
+      onClick: () => setRecordCat(c.id),
+      className: "px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap " + (recordCat === c.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+    }, c.label))), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between mt-4 mb-2"
+    }, /*#__PURE__*/React.createElement("h2", {
+      className: "font-bold text-slate-800"
+    }, (RC.find(c => c.id === recordCat) || {}).label), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setRecordEditor({
+        mode: "newRecord",
+        name: "",
+        value: "",
+        date: new Date().toISOString().slice(0, 10)
+      }),
+      className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
+      style: {
+        background: "#4f46e5"
+      }
+    }, /*#__PURE__*/React.createElement(Plus, {
+      size: 15
+    }), " Nouveau")), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-slate-400 py-10 text-center"
+    }, "Aucun mouvement. Appuie sur «\xA0Nouveau\xA0» pour ajouter ton premier record.") : /*#__PURE__*/React.createElement("div", {
+      className: "space-y-1"
+    }, list.map(m => /*#__PURE__*/React.createElement("button", {
+      key: m.id,
+      onClick: () => setRecordDetail(m.id),
+      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800"
+    }, m.name), /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-500 font-semibold"
+    }, m.entries[0] ? m.entries[0].value : "—")))));
+  })(), recordEditor && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+    style: {
+      background: "rgba(15,23,42,0.45)"
+    },
+    onClick: () => setRecordEditor(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-sm bg-white rounded-2xl shadow-xl p-5",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-semibold text-slate-800 mb-3"
+  }, recordEditor.mode === "newRecord" ? "Nouveau record" : "Ajouter une performance"), recordEditor.mode === "newRecord" && /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Nom du mouvement"), /*#__PURE__*/React.createElement("input", {
+    value: recordEditor.name,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      name: e.target.value
+    })),
+    placeholder: "ex. Back Squat",
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Performance"), /*#__PURE__*/React.createElement("input", {
+    value: recordEditor.value,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      value: e.target.value
+    })),
+    placeholder: "ex. 100 kg, 10 reps, 3:45, 5 km",
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mb-4"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: recordEditor.date,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      date: e.target.value
+    })),
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRecordEditor(null),
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (recordEditor.mode === "newRecord") {
+        if (!recordEditor.name.trim()) return;
+        const rid = addRecordMovement(recordCat, recordEditor.name);
+        if (recordEditor.value.trim()) addRecordEntry(recordCat, rid, recordEditor.value, recordEditor.date);
+      } else {
+        if (!recordEditor.value.trim()) return;
+        addRecordEntry(recordCat, recordEditor.recordId, recordEditor.value, recordEditor.date);
+      }
+      setRecordEditor(null);
+    },
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Enregistrer"))))), athletesOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, athleteDetail && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAthleteDetail(null),
+    className: "p-1 rounded hover:bg-slate-100"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20
+  })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 18,
+    className: "text-indigo-500"
+  }), " Mes athlètes")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAthletesOpen(false);
+      setAthleteDetail(null);
+    },
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 20
+  }))), (() => {
+    const RC = [{
+      id: "haltero",
+      label: "Haltérophilie"
+    }, {
+      id: "gym",
+      label: "Gymnastique"
+    }, {
+      id: "course",
+      label: "Course à pied"
+    }, {
+      id: "muscu",
+      label: "Musculation"
+    }];
+    if (athletes === null) {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "max-w-xl mx-auto px-4 py-10 text-center text-slate-400 text-sm"
+      }, "Chargement…");
+    }
+    if (athleteDetail) {
+      const a = athletes.find(x => x.id === athleteDetail);
+      if (!a) return null;
+      const list = a.records && a.records[athleteCat] || [];
+      return /*#__PURE__*/React.createElement("div", {
+        className: "max-w-xl mx-auto px-4 py-4"
+      }, /*#__PURE__*/React.createElement("h2", {
+        className: "text-xl font-bold text-slate-900"
+      }, a.name || a.email || "Athlète"), /*#__PURE__*/React.createElement("div", {
+        className: "flex gap-2 overflow-x-auto pb-2 mt-3"
+      }, RC.map(c => /*#__PURE__*/React.createElement("button", {
+        key: c.id,
+        onClick: () => setAthleteCat(c.id),
+        className: "px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap " + (athleteCat === c.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+      }, c.label))), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-slate-400 py-10 text-center"
+      }, "Aucun record dans cette catégorie.") : /*#__PURE__*/React.createElement("div", {
+        className: "space-y-3"
+      }, list.map(m => /*#__PURE__*/React.createElement("div", {
+        key: m.id,
+        className: "rounded-lg border border-slate-100 p-3"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "font-semibold text-slate-800"
+      }, m.name), /*#__PURE__*/React.createElement("div", {
+        className: "text-slate-900 font-bold"
+      }, m.entries && m.entries[0] ? m.entries[0].value : "—")), m.entries && m.entries.length > 0 && /*#__PURE__*/React.createElement("div", {
+        className: "mt-2 space-y-0.5"
+      }, m.entries.map(e => /*#__PURE__*/React.createElement("div", {
+        key: e.id,
+        className: "flex items-center justify-between text-xs text-slate-500"
+      }, /*#__PURE__*/React.createElement("span", null, e.date), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium text-slate-700"
+      }, e.value))))))));
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "max-w-xl mx-auto px-4 py-4"
+    }, athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-slate-400 py-10 text-center"
+    }, "Aucun athlète lié à ton compte pour le moment.", /*#__PURE__*/React.createElement("br", null), "Les comptes clients créés avec ton identifiant comme coach apparaîtront ici avec leurs records.") : /*#__PURE__*/React.createElement("div", {
+      className: "space-y-1"
+    }, athletes.map(a => /*#__PURE__*/React.createElement("button", {
+      key: a.id,
+      onClick: () => setAthleteDetail(a.id),
+      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800"
+    }, a.name || a.email || "Athlète"), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 16,
+      className: "text-slate-300"
+    })))));
+  })()), presentDate && (() => {
     const dk = keyOf(presentDate);
     const list = blocks[dk] || [];
     const di = (presentDate.getDay() + 6) % 7;
