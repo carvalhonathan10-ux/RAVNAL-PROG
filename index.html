@@ -2401,6 +2401,219 @@ function App() {
       className: "text-sm text-slate-400"
     }, "Chargement du planning…"));
   }
+  const recordsOverlay = recordsOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, recordDetail && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRecordDetail(null),
+    className: "p-1 rounded hover:bg-slate-100"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20
+  })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 18,
+    className: "text-amber-500"
+  }), " Mes records")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setRecordsOpen(false);
+      setRecordDetail(null);
+    },
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 20
+  }))), (() => {
+    const RC = [{
+      id: "haltero",
+      label: "Haltérophilie"
+    }, {
+      id: "gym",
+      label: "Gymnastique"
+    }, {
+      id: "course",
+      label: "Course à pied"
+    }, {
+      id: "muscu",
+      label: "Musculation"
+    }];
+    const list = records[recordCat] || [];
+    if (recordDetail) {
+      const mv = list.find(m => m.id === recordDetail);
+      if (!mv) return null;
+      return /*#__PURE__*/React.createElement("div", {
+        className: "max-w-xl mx-auto px-4 py-4"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between"
+      }, /*#__PURE__*/React.createElement("h2", {
+        className: "text-xl font-bold text-slate-900"
+      }, mv.name), /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          deleteRecordMovement(recordCat, mv.id);
+          setRecordDetail(null);
+        },
+        className: "text-red-500 text-sm flex items-center gap-1 hover:underline"
+      }, /*#__PURE__*/React.createElement(Trash2, {
+        size: 15
+      }), " Supprimer")), /*#__PURE__*/React.createElement("div", {
+        className: "mt-3 rounded-2xl bg-slate-900 text-white p-5 text-center"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-[11px] uppercase tracking-wide text-slate-300"
+      }, "Record actuel"), /*#__PURE__*/React.createElement("div", {
+        className: "text-3xl font-bold mt-1"
+      }, mv.entries[0] ? mv.entries[0].value : "—"), mv.entries[0] && /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-slate-400 mt-1"
+      }, mv.entries[0].date)), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between mt-5 mb-2"
+      }, /*#__PURE__*/React.createElement("h3", {
+        className: "font-semibold text-slate-700"
+      }, "Historique"), /*#__PURE__*/React.createElement("button", {
+        onClick: () => setRecordEditor({
+          mode: "entry",
+          recordId: mv.id,
+          value: "",
+          date: new Date().toISOString().slice(0, 10)
+        }),
+        className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
+        style: {
+          background: "#111"
+        }
+      }, /*#__PURE__*/React.createElement(Plus, {
+        size: 15
+      }), " Ajouter")), mv.entries.length === 0 ? /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-slate-400 py-6 text-center"
+      }, "Aucun record enregistré pour l'instant.") : /*#__PURE__*/React.createElement("div", {
+        className: "space-y-1"
+      }, mv.entries.map(e => /*#__PURE__*/React.createElement("div", {
+        key: e.id,
+        className: "flex items-center justify-between py-2.5 px-3 rounded-lg border border-slate-100"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-slate-500"
+      }, e.date), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "font-semibold text-slate-800"
+      }, e.value), /*#__PURE__*/React.createElement("button", {
+        onClick: () => deleteRecordEntry(recordCat, mv.id, e.id),
+        className: "text-slate-300 hover:text-red-500"
+      }, /*#__PURE__*/React.createElement(Trash2, {
+        size: 15
+      })))))));
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "max-w-xl mx-auto px-4 py-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-2 overflow-x-auto pb-2"
+    }, RC.map(c => /*#__PURE__*/React.createElement("button", {
+      key: c.id,
+      onClick: () => setRecordCat(c.id),
+      className: "px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap " + (recordCat === c.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+    }, c.label))), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between mt-4 mb-2"
+    }, /*#__PURE__*/React.createElement("h2", {
+      className: "font-bold text-slate-800"
+    }, (RC.find(c => c.id === recordCat) || {}).label), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setRecordEditor({
+        mode: "newRecord",
+        name: "",
+        value: "",
+        date: new Date().toISOString().slice(0, 10)
+      }),
+      className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
+      style: {
+        background: "#4f46e5"
+      }
+    }, /*#__PURE__*/React.createElement(Plus, {
+      size: 15
+    }), " Nouveau")), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-slate-400 py-10 text-center"
+    }, "Aucun mouvement. Appuie sur «\xA0Nouveau\xA0» pour ajouter ton premier record.") : /*#__PURE__*/React.createElement("div", {
+      className: "space-y-1"
+    }, list.map(m => /*#__PURE__*/React.createElement("button", {
+      key: m.id,
+      onClick: () => setRecordDetail(m.id),
+      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800"
+    }, m.name), /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-500 font-semibold"
+    }, m.entries[0] ? m.entries[0].value : "—")))));
+  })(), recordEditor && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+    style: {
+      background: "rgba(15,23,42,0.45)"
+    },
+    onClick: () => setRecordEditor(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-sm bg-white rounded-2xl shadow-xl p-5",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-semibold text-slate-800 mb-3"
+  }, recordEditor.mode === "newRecord" ? "Nouveau record" : "Ajouter une performance"), recordEditor.mode === "newRecord" && /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Nom du mouvement"), /*#__PURE__*/React.createElement("input", {
+    value: recordEditor.name,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      name: e.target.value
+    })),
+    placeholder: "ex. Back Squat",
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Performance"), /*#__PURE__*/React.createElement("input", {
+    value: recordEditor.value,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      value: e.target.value
+    })),
+    placeholder: "ex. 100 kg, 10 reps, 3:45, 5 km",
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mb-4"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: recordEditor.date,
+    onChange: e => setRecordEditor(r => ({
+      ...r,
+      date: e.target.value
+    })),
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRecordEditor(null),
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (recordEditor.mode === "newRecord") {
+        if (!recordEditor.name.trim()) return;
+        const rid = addRecordMovement(recordCat, recordEditor.name);
+        if (recordEditor.value.trim()) addRecordEntry(recordCat, rid, recordEditor.value, recordEditor.date);
+      } else {
+        if (!recordEditor.value.trim()) return;
+        addRecordEntry(recordCat, recordEditor.recordId, recordEditor.value, recordEditor.date);
+      }
+      setRecordEditor(null);
+    },
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Enregistrer")))));
+  if (role === "client") return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ClientDay, {
+    programName: activeName,
+    blocks: blocks,
+    onOpenRecords: () => setRecordsOpen(true)
+  }), recordsOverlay);
   return /*#__PURE__*/React.createElement("div", {
     className: "w-full min-h-screen text-slate-800",
     style: {
@@ -3057,214 +3270,7 @@ function App() {
         background: "#111"
       }
     }, cycleEdit.mode === "new" ? "Créer le cycle" : "Enregistrer")))));
-  })(), recordsOpen && /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2"
-  }, recordDetail && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setRecordDetail(null),
-    className: "p-1 rounded hover:bg-slate-100"
-  }, /*#__PURE__*/React.createElement(ChevronLeft, {
-    size: 20
-  })), /*#__PURE__*/React.createElement("h1", {
-    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
-  }, /*#__PURE__*/React.createElement(Trophy, {
-    size: 18,
-    className: "text-amber-500"
-  }), " Mes records")), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setRecordsOpen(false);
-      setRecordDetail(null);
-    },
-    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
-  }, /*#__PURE__*/React.createElement(X, {
-    size: 20
-  }))), (() => {
-    const RC = [{
-      id: "haltero",
-      label: "Haltérophilie"
-    }, {
-      id: "gym",
-      label: "Gymnastique"
-    }, {
-      id: "course",
-      label: "Course à pied"
-    }, {
-      id: "muscu",
-      label: "Musculation"
-    }];
-    const list = records[recordCat] || [];
-    if (recordDetail) {
-      const mv = list.find(m => m.id === recordDetail);
-      if (!mv) return null;
-      return /*#__PURE__*/React.createElement("div", {
-        className: "max-w-xl mx-auto px-4 py-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center justify-between"
-      }, /*#__PURE__*/React.createElement("h2", {
-        className: "text-xl font-bold text-slate-900"
-      }, mv.name), /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          deleteRecordMovement(recordCat, mv.id);
-          setRecordDetail(null);
-        },
-        className: "text-red-500 text-sm flex items-center gap-1 hover:underline"
-      }, /*#__PURE__*/React.createElement(Trash2, {
-        size: 15
-      }), " Supprimer")), /*#__PURE__*/React.createElement("div", {
-        className: "mt-3 rounded-2xl bg-slate-900 text-white p-5 text-center"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-[11px] uppercase tracking-wide text-slate-300"
-      }, "Record actuel"), /*#__PURE__*/React.createElement("div", {
-        className: "text-3xl font-bold mt-1"
-      }, mv.entries[0] ? mv.entries[0].value : "—"), mv.entries[0] && /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-slate-400 mt-1"
-      }, mv.entries[0].date)), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center justify-between mt-5 mb-2"
-      }, /*#__PURE__*/React.createElement("h3", {
-        className: "font-semibold text-slate-700"
-      }, "Historique"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => setRecordEditor({
-          mode: "entry",
-          recordId: mv.id,
-          value: "",
-          date: new Date().toISOString().slice(0, 10)
-        }),
-        className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
-        style: {
-          background: "#111"
-        }
-      }, /*#__PURE__*/React.createElement(Plus, {
-        size: 15
-      }), " Ajouter")), mv.entries.length === 0 ? /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-slate-400 py-6 text-center"
-      }, "Aucun record enregistré pour l'instant.") : /*#__PURE__*/React.createElement("div", {
-        className: "space-y-1"
-      }, mv.entries.map(e => /*#__PURE__*/React.createElement("div", {
-        key: e.id,
-        className: "flex items-center justify-between py-2.5 px-3 rounded-lg border border-slate-100"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-slate-500"
-      }, e.date), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "font-semibold text-slate-800"
-      }, e.value), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deleteRecordEntry(recordCat, mv.id, e.id),
-        className: "text-slate-300 hover:text-red-500"
-      }, /*#__PURE__*/React.createElement(Trash2, {
-        size: 15
-      })))))));
-    }
-    return /*#__PURE__*/React.createElement("div", {
-      className: "max-w-xl mx-auto px-4 py-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2 overflow-x-auto pb-2"
-    }, RC.map(c => /*#__PURE__*/React.createElement("button", {
-      key: c.id,
-      onClick: () => setRecordCat(c.id),
-      className: "px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap " + (recordCat === c.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
-    }, c.label))), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between mt-4 mb-2"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "font-bold text-slate-800"
-    }, (RC.find(c => c.id === recordCat) || {}).label), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setRecordEditor({
-        mode: "newRecord",
-        name: "",
-        value: "",
-        date: new Date().toISOString().slice(0, 10)
-      }),
-      className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
-      style: {
-        background: "#4f46e5"
-      }
-    }, /*#__PURE__*/React.createElement(Plus, {
-      size: 15
-    }), " Nouveau")), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-slate-400 py-10 text-center"
-    }, "Aucun mouvement. Appuie sur «\xA0Nouveau\xA0» pour ajouter ton premier record.") : /*#__PURE__*/React.createElement("div", {
-      className: "space-y-1"
-    }, list.map(m => /*#__PURE__*/React.createElement("button", {
-      key: m.id,
-      onClick: () => setRecordDetail(m.id),
-      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "font-medium text-slate-800"
-    }, m.name), /*#__PURE__*/React.createElement("div", {
-      className: "text-slate-500 font-semibold"
-    }, m.entries[0] ? m.entries[0].value : "—")))));
-  })(), recordEditor && /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
-    style: {
-      background: "rgba(15,23,42,0.45)"
-    },
-    onClick: () => setRecordEditor(null)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-full max-w-sm bg-white rounded-2xl shadow-xl p-5",
-    onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-semibold text-slate-800 mb-3"
-  }, recordEditor.mode === "newRecord" ? "Nouveau record" : "Ajouter une performance"), recordEditor.mode === "newRecord" && /*#__PURE__*/React.createElement("div", {
-    className: "mb-3"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Nom du mouvement"), /*#__PURE__*/React.createElement("input", {
-    value: recordEditor.name,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      name: e.target.value
-    })),
-    placeholder: "ex. Back Squat",
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mb-3"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Performance"), /*#__PURE__*/React.createElement("input", {
-    value: recordEditor.value,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      value: e.target.value
-    })),
-    placeholder: "ex. 100 kg, 10 reps, 3:45, 5 km",
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mb-4"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Date"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: recordEditor.date,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      date: e.target.value
-    })),
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "flex justify-end gap-2"
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setRecordEditor(null),
-    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
-  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      if (recordEditor.mode === "newRecord") {
-        if (!recordEditor.name.trim()) return;
-        const rid = addRecordMovement(recordCat, recordEditor.name);
-        if (recordEditor.value.trim()) addRecordEntry(recordCat, rid, recordEditor.value, recordEditor.date);
-      } else {
-        if (!recordEditor.value.trim()) return;
-        addRecordEntry(recordCat, recordEditor.recordId, recordEditor.value, recordEditor.date);
-      }
-      setRecordEditor(null);
-    },
-    className: "px-4 py-2 text-sm font-medium rounded-lg text-white",
-    style: {
-      background: "#111"
-    }
-  }, "Enregistrer"))))), athletesOpen && /*#__PURE__*/React.createElement("div", {
+  })(), recordsOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
     className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
@@ -4382,6 +4388,145 @@ function BlockEditor({
     }
   }, mode === "new" ? "Ajouter le bloc" : "Enregistrer"))));
 }
+function ClientDay({
+  programName,
+  blocks,
+  onOpenRecords
+}) {
+  const monday = mondayOf(0);
+  const week = Array.from({
+    length: 7
+  }, (_, i) => addDays(monday, i));
+  const todayKey = keyOf(new Date());
+  let startIdx = week.findIndex(d => keyOf(d) === todayKey);
+  if (startIdx < 0) startIdx = 0;
+  const [idx, setIdx] = useState(startIdx);
+  const DAYS_SHORT = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
+  const d = week[idx];
+  const list = blocks[keyOf(d)] || [];
+  const renderBlock = b => {
+    const c = COLORS[b.color] || COLORS[0];
+    return /*#__PURE__*/React.createElement("div", {
+      key: b.id,
+      className: "bg-white rounded-xl shadow-sm mb-3 overflow-hidden",
+      style: {
+        borderLeft: "5px solid " + c.bar
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "px-4 py-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-slate-900 uppercase tracking-wide text-[15px]"
+    }, b.title), b.duration ? /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400 mt-0.5"
+    }, b.duration) : null, b.content ? /*#__PURE__*/React.createElement("div", {
+      className: "text-[15px] text-slate-700 whitespace-pre-wrap mt-2 leading-relaxed"
+    }, b.content) : null, b.tip ? /*#__PURE__*/React.createElement("div", {
+      className: "mt-3 flex gap-2 items-start rounded-lg px-3 py-2",
+      style: {
+        background: "#FFFBEB",
+        border: "1px solid #FDE68A"
+      }
+    }, /*#__PURE__*/React.createElement(Lightbulb, {
+      size: 15,
+      className: "text-amber-500 mt-0.5 shrink-0"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "text-[13px] text-amber-700 whitespace-pre-wrap"
+    }, b.tip)) : null));
+  };
+  const sections = [];
+  const seen = {};
+  list.forEach(b => {
+    if (b.courseId) {
+      if (seen[b.courseId]) return;
+      seen[b.courseId] = true;
+      sections.push({
+        kind: "course",
+        name: b.courseName || "Cours",
+        items: list.filter(x => x.courseId === b.courseId)
+      });
+    } else {
+      sections.push({
+        kind: "single",
+        items: [b]
+      });
+    }
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-full min-h-screen",
+    style: {
+      background: "#F1F5F9",
+      fontFamily: "'Inter', system-ui, sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 z-20",
+    style: {
+      background: "#0F172A"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pt-3 pb-2 text-center text-white font-bold text-base"
+  }, programName), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 px-2 pb-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIdx(i => Math.max(0, i - 1)),
+    disabled: idx === 0,
+    className: "p-1.5 rounded-lg text-white disabled:opacity-25 shrink-0",
+    "aria-label": "Jour précédent"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 18
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 grid grid-cols-7 gap-0.5"
+  }, week.map((wd, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setIdx(i),
+    className: "py-1.5 rounded-lg text-center " + (i === idx ? "bg-white/15 ring-1 ring-white/70" : "")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-semibold",
+    style: {
+      color: i === idx ? "#ffffff" : "#94A3B8"
+    }
+  }, DAYS_SHORT[i]), /*#__PURE__*/React.createElement("div", {
+    className: "text-[15px] font-bold",
+    style: {
+      color: i === idx ? "#ffffff" : "#CBD5E1"
+    }
+  }, wd.getDate())))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIdx(i => Math.min(6, i + 1)),
+    disabled: idx === 6,
+    className: "p-1.5 rounded-lg text-white disabled:opacity-25 shrink-0",
+    "aria-label": "Jour suivant"
+  }, /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-2xl mx-auto px-3 py-4 pb-28"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-slate-500 mb-3"
+  }, DAYS_FR[idx], " ", d.getDate(), " ", MONTHS_FR[d.getMonth()].toLowerCase()), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-slate-400 text-sm py-16"
+  }, "Rien de programmé ce jour.") : sections.map((s, si) => /*#__PURE__*/React.createElement("div", {
+    key: si,
+    className: "mb-5"
+  }, s.kind === "course" ? /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 px-1"
+  }, s.name) : null, s.items.map(renderBlock)))), /*#__PURE__*/React.createElement("div", {
+    className: "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex z-30"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 py-2.5 flex flex-col items-center gap-0.5",
+    style: {
+      color: "#0F172A"
+    }
+  }, /*#__PURE__*/React.createElement(Calendar, {
+    size: 18
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-semibold"
+  }, "Programmation")), /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenRecords,
+    className: "flex-1 py-2.5 flex flex-col items-center gap-0.5 text-slate-400"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 18
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-semibold"
+  }, "Mes records"))));
+}
 function Gate() {
   const [session, setSession] = useState(undefined); // undefined = chargement
   const [email, setEmail] = useState("");
@@ -4494,7 +4639,7 @@ createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElem
     if(document.getElementById("ravnal-logout"))return;
     var w=document.createElement("div");
     w.id="ravnal-logout";
-    w.style.cssText="position:fixed;bottom:14px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.97);border:1px solid #e2e8f0;border-radius:9999px;padding:4px 5px 4px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font:12px system-ui,-apple-system,sans-serif";
+    w.style.cssText="position:fixed;bottom:72px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.97);border:1px solid #e2e8f0;border-radius:9999px;padding:4px 5px 4px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font:12px system-ui,-apple-system,sans-serif";
     var s=document.createElement("span");
     s.textContent=email;
     s.style.cssText="color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
