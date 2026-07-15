@@ -403,7 +403,8 @@ const {
   Sparkles,
   Dumbbell,
   Trophy,
-  Users
+  Users,
+  UserRound
 } = window.LucideReact;
 const SUPABASE_URL = "https://xfltsucwsdpccwnomgnt.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dGJ5JZyOQ1On-rwtDmyQbw_gDQhqjif";
@@ -1458,9 +1459,6 @@ function App() {
   const [generator, setGenerator] = useState(null);
   const [records, setRecords] = useState({});
   const [recordsOpen, setRecordsOpen] = useState(false);
-  const [recordCat, setRecordCat] = useState("haltero");
-  const [recordDetail, setRecordDetail] = useState(null);
-  const [recordEditor, setRecordEditor] = useState(null);
   const [role, setRole] = useState("coach");
   const [myProfile, setMyProfile] = useState(null);
   const [coaches, setCoaches] = useState([]);
@@ -1471,10 +1469,12 @@ function App() {
   const [clientProgs, setClientProgs] = useState(undefined);
   const [clientProgIdx, setClientProgIdx] = useState(0);
   const [assignError, setAssignError] = useState("");
+  const [profile, setProfile] = useState({});
+  const [profileOpen, setProfileOpen] = useState(false);
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [athletes, setAthletes] = useState(null);
   const [athleteDetail, setAthleteDetail] = useState(null);
-  const [athleteCat, setAthleteCat] = useState("haltero");
+  const [athleteCat, setAthleteCat] = useState("lift");
   const dragRef = useRef(null); // { fromKey, blockId }
 
   // ---- Données du programme actif (blocks / doneDays dérivés) ----
@@ -1621,7 +1621,8 @@ function App() {
             setActiveId(data.activeId || data.programs[0] && data.programs[0].id);
             setTemplates(data.templates || []);
             setTemplateCategories(data.templateCategories || []);
-            setRecords(data.records || {});
+            setRecords(prMigrate(data.records || {}));
+            setProfile(data.profile || {});
           } else {
             // ancien format { blocks, templates, doneDays } → migration
             const pid = newProgramId();
@@ -1667,7 +1668,8 @@ function App() {
           activeId,
           templates,
           templateCategories,
-          records
+          records,
+          profile
         }));
         setSaveStatus("saved");
         if (role === "coach") {
@@ -1685,7 +1687,7 @@ function App() {
       }
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [programs, programData, activeId, templates, templateCategories, records, loaded]);
+  }, [programs, programData, activeId, templates, templateCategories, records, profile, loaded]);
   const monday = mondayOf(weekOffset);
   const weekDates = Array.from({
     length: 7
@@ -2015,42 +2017,23 @@ function App() {
       setAthletes([]);
     }
   };
-  const addRecordMovement = (catId, name) => {
-    const rid = "r" + Math.random().toString(36).slice(2, 9);
-    setRecords(r => ({
-      ...r,
-      [catId]: [...(r[catId] || []), {
-        id: rid,
-        name: (name || "").trim() || "Mouvement",
-        entries: []
-      }]
-    }));
-    return rid;
+  const addRecordEntryByName = (name, value, date, rm) => {
+    setRecords((r) => {
+      const list = (r[name] || []).slice();
+      list.unshift({
+        id: "e" + Math.random().toString(36).slice(2, 9),
+        date: date || new Date().toISOString().slice(0, 10),
+        value: String(value || "").trim(),
+        rm: rm || "1RM"
+      });
+      list.sort((a, b) => (a.date < b.date ? 1 : -1));
+      return { ...r, [name]: list };
+    });
   };
-  const addRecordEntry = (catId, recordId, value, date) => {
-    setRecords(r => ({
-      ...r,
-      [catId]: (r[catId] || []).map(m => m.id === recordId ? {
-        ...m,
-        entries: [{
-          id: "e" + Math.random().toString(36).slice(2, 9),
-          date: date || new Date().toISOString().slice(0, 10),
-          value: (value || "").trim()
-        }, ...m.entries].sort((a, b) => a.date < b.date ? 1 : -1)
-      } : m)
-    }));
+  const deleteRecordEntryByName = (name, entryId) => {
+    setRecords((r) => ({ ...r, [name]: (r[name] || []).filter((e) => e.id !== entryId) }));
   };
-  const deleteRecordMovement = (catId, recordId) => setRecords(r => ({
-    ...r,
-    [catId]: (r[catId] || []).filter(m => m.id !== recordId)
-  }));
-  const deleteRecordEntry = (catId, recordId, entryId) => setRecords(r => ({
-    ...r,
-    [catId]: (r[catId] || []).map(m => m.id === recordId ? {
-      ...m,
-      entries: m.entries.filter(e => e.id !== entryId)
-    } : m)
-  }));
+
   const insertGeneratedSession = (result, dateKey) => {
     const cid = "c" + Math.random().toString(36).slice(2, 9);
     const nbs = result.blocks.map(b => ({
@@ -2528,214 +2511,22 @@ function App() {
       className: "text-sm text-slate-400"
     }, "Chargement du planning…"));
   }
-  const recordsOverlay = recordsOpen && /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2"
-  }, recordDetail && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setRecordDetail(null),
-    className: "p-1 rounded hover:bg-slate-100"
-  }, /*#__PURE__*/React.createElement(ChevronLeft, {
-    size: 20
-  })), /*#__PURE__*/React.createElement("h1", {
-    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
-  }, /*#__PURE__*/React.createElement(Trophy, {
-    size: 18,
-    className: "text-amber-500"
-  }), " Mes records")), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setRecordsOpen(false);
-      setRecordDetail(null);
+  const recordsOverlay = recordsOpen && /*#__PURE__*/React.createElement(RecordsPage, {
+    records: records,
+    onAddEntry: addRecordEntryByName,
+    onDeleteEntry: deleteRecordEntryByName,
+    onClose: () => setRecordsOpen(false)
+  });
+  const profileOverlay = profileOpen && /*#__PURE__*/React.createElement(ProfilePage, {
+    profile: profile,
+    records: records,
+    email: (myProfile && myProfile.email) || "",
+    onSave: (p) => {
+      setProfile(p);
+      setProfileOpen(false);
     },
-    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
-  }, /*#__PURE__*/React.createElement(X, {
-    size: 20
-  }))), (() => {
-    const RC = [{
-      id: "haltero",
-      label: "Haltérophilie"
-    }, {
-      id: "gym",
-      label: "Gymnastique"
-    }, {
-      id: "course",
-      label: "Course à pied"
-    }, {
-      id: "muscu",
-      label: "Musculation"
-    }];
-    const list = records[recordCat] || [];
-    if (recordDetail) {
-      const mv = list.find(m => m.id === recordDetail);
-      if (!mv) return null;
-      return /*#__PURE__*/React.createElement("div", {
-        className: "max-w-xl mx-auto px-4 py-4"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center justify-between"
-      }, /*#__PURE__*/React.createElement("h2", {
-        className: "text-xl font-bold text-slate-900"
-      }, mv.name), /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          deleteRecordMovement(recordCat, mv.id);
-          setRecordDetail(null);
-        },
-        className: "text-red-500 text-sm flex items-center gap-1 hover:underline"
-      }, /*#__PURE__*/React.createElement(Trash2, {
-        size: 15
-      }), " Supprimer")), /*#__PURE__*/React.createElement("div", {
-        className: "mt-3 rounded-2xl bg-slate-900 text-white p-5 text-center"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-[11px] uppercase tracking-wide text-slate-300"
-      }, "Record actuel"), /*#__PURE__*/React.createElement("div", {
-        className: "text-3xl font-bold mt-1"
-      }, mv.entries[0] ? mv.entries[0].value : "—"), mv.entries[0] && /*#__PURE__*/React.createElement("div", {
-        className: "text-xs text-slate-400 mt-1"
-      }, mv.entries[0].date)), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center justify-between mt-5 mb-2"
-      }, /*#__PURE__*/React.createElement("h3", {
-        className: "font-semibold text-slate-700"
-      }, "Historique"), /*#__PURE__*/React.createElement("button", {
-        onClick: () => setRecordEditor({
-          mode: "entry",
-          recordId: mv.id,
-          value: "",
-          date: new Date().toISOString().slice(0, 10)
-        }),
-        className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
-        style: {
-          background: "#111"
-        }
-      }, /*#__PURE__*/React.createElement(Plus, {
-        size: 15
-      }), " Ajouter")), mv.entries.length === 0 ? /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-slate-400 py-6 text-center"
-      }, "Aucun record enregistré pour l'instant.") : /*#__PURE__*/React.createElement("div", {
-        className: "space-y-1"
-      }, mv.entries.map(e => /*#__PURE__*/React.createElement("div", {
-        key: e.id,
-        className: "flex items-center justify-between py-2.5 px-3 rounded-lg border border-slate-100"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "text-sm text-slate-500"
-      }, e.date), /*#__PURE__*/React.createElement("div", {
-        className: "flex items-center gap-3"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "font-semibold text-slate-800"
-      }, e.value), /*#__PURE__*/React.createElement("button", {
-        onClick: () => deleteRecordEntry(recordCat, mv.id, e.id),
-        className: "text-slate-300 hover:text-red-500"
-      }, /*#__PURE__*/React.createElement(Trash2, {
-        size: 15
-      })))))));
-    }
-    return /*#__PURE__*/React.createElement("div", {
-      className: "max-w-xl mx-auto px-4 py-4"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2 overflow-x-auto pb-2"
-    }, RC.map(c => /*#__PURE__*/React.createElement("button", {
-      key: c.id,
-      onClick: () => setRecordCat(c.id),
-      className: "px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap " + (recordCat === c.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
-    }, c.label))), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between mt-4 mb-2"
-    }, /*#__PURE__*/React.createElement("h2", {
-      className: "font-bold text-slate-800"
-    }, (RC.find(c => c.id === recordCat) || {}).label), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setRecordEditor({
-        mode: "newRecord",
-        name: "",
-        value: "",
-        date: new Date().toISOString().slice(0, 10)
-      }),
-      className: "flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-sm",
-      style: {
-        background: "#4f46e5"
-      }
-    }, /*#__PURE__*/React.createElement(Plus, {
-      size: 15
-    }), " Nouveau")), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      className: "text-sm text-slate-400 py-10 text-center"
-    }, "Aucun mouvement. Appuie sur «\xA0Nouveau\xA0» pour ajouter ton premier record.") : /*#__PURE__*/React.createElement("div", {
-      className: "space-y-1"
-    }, list.map(m => /*#__PURE__*/React.createElement("button", {
-      key: m.id,
-      onClick: () => setRecordDetail(m.id),
-      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "font-medium text-slate-800"
-    }, m.name), /*#__PURE__*/React.createElement("div", {
-      className: "text-slate-500 font-semibold"
-    }, m.entries[0] ? m.entries[0].value : "—")))));
-  })(), recordEditor && /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
-    style: {
-      background: "rgba(15,23,42,0.45)"
-    },
-    onClick: () => setRecordEditor(null)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-full max-w-sm bg-white rounded-2xl shadow-xl p-5",
-    onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-semibold text-slate-800 mb-3"
-  }, recordEditor.mode === "newRecord" ? "Nouveau record" : "Ajouter une performance"), recordEditor.mode === "newRecord" && /*#__PURE__*/React.createElement("div", {
-    className: "mb-3"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Nom du mouvement"), /*#__PURE__*/React.createElement("input", {
-    value: recordEditor.name,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      name: e.target.value
-    })),
-    placeholder: "ex. Back Squat",
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mb-3"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Performance"), /*#__PURE__*/React.createElement("input", {
-    value: recordEditor.value,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      value: e.target.value
-    })),
-    placeholder: "ex. 100 kg, 10 reps, 3:45, 5 km",
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mb-4"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "block text-xs font-medium text-slate-500 mb-1"
-  }, "Date"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: recordEditor.date,
-    onChange: e => setRecordEditor(r => ({
-      ...r,
-      date: e.target.value
-    })),
-    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "flex justify-end gap-2"
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setRecordEditor(null),
-    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
-  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      if (recordEditor.mode === "newRecord") {
-        if (!recordEditor.name.trim()) return;
-        const rid = addRecordMovement(recordCat, recordEditor.name);
-        if (recordEditor.value.trim()) addRecordEntry(recordCat, rid, recordEditor.value, recordEditor.date);
-      } else {
-        if (!recordEditor.value.trim()) return;
-        addRecordEntry(recordCat, recordEditor.recordId, recordEditor.value, recordEditor.date);
-      }
-      setRecordEditor(null);
-    },
-    className: "px-4 py-2 text-sm font-medium rounded-lg text-white",
-    style: {
-      background: "#111"
-    }
-  }, "Enregistrer")))));
+    onClose: () => setProfileOpen(false)
+  });
   if (role === "client") {
     const coachOf = (id) => {
       const c = coaches.find((x) => x.user_id === id);
@@ -2769,13 +2560,15 @@ function App() {
       blocks: cpBlocks,
       notice: cpNotice,
       onOpenRecords: () => setRecordsOpen(true),
+      onOpenProfile: () => setProfileOpen(true),
+      records: records,
       coachName: coachOf(myProfile.coach_id),
       pendingCoachName: myProfile.pending_coach_id ? coachOf(myProfile.pending_coach_id) : null,
       onChangeCoach: () => {
         loadCoaches();
         setCoachPicker(true);
       }
-    }), recordsOverlay);
+    }), recordsOverlay, profileOverlay);
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "w-full min-h-screen text-slate-800",
@@ -3478,19 +3271,7 @@ function App() {
   }, /*#__PURE__*/React.createElement(X, {
     size: 20
   }))), (() => {
-    const RC = [{
-      id: "haltero",
-      label: "Haltérophilie"
-    }, {
-      id: "gym",
-      label: "Gymnastique"
-    }, {
-      id: "course",
-      label: "Course à pied"
-    }, {
-      id: "muscu",
-      label: "Musculation"
-    }];
+    const RC = PR_CATALOG.map((f) => ({ id: f.id, label: f.id === "lift" ? "Haltérophilie" : f.id === "gym" ? "Gymnastique" : f.id === "cardio" ? "Cardio" : "Benchmarks" }));
     if (athletes === null) {
       return /*#__PURE__*/React.createElement("div", {
         className: "max-w-xl mx-auto px-4 py-10 text-center text-slate-400 text-sm"
@@ -3499,7 +3280,21 @@ function App() {
     if (athleteDetail) {
       const a = athletes.find(x => x.id === athleteDetail);
       if (!a) return null;
-      const list = a.records && a.records[athleteCat] || [];
+      const _recs = prMigrate(a.records || {});
+      const _fam = PR_CATALOG.find((f) => f.id === athleteCat) || PR_CATALOG[0];
+      const list = [];
+      _fam.groups.forEach((g) => {
+        g.items.forEach((nm) => {
+          const es = _recs[nm];
+          if (es && es.length) {
+            list.push({
+              id: nm,
+              name: nm,
+              entries: es.slice().sort((x, y) => (x.date < y.date ? 1 : -1)).map((e) => ({ id: e.id, date: e.date, value: prFormat(e.value, g.unit) + (g.unit === "kg" && e.rm && e.rm !== "1RM" ? " (" + e.rm + ")" : "") }))
+            });
+          }
+        });
+      });
       return /*#__PURE__*/React.createElement("div", {
         className: "max-w-xl mx-auto px-4 py-4"
       }, /*#__PURE__*/React.createElement("h2", {
@@ -4575,6 +4370,954 @@ function BlockEditor({
     }
   }, mode === "new" ? "Ajouter le bloc" : "Enregistrer"))));
 }
+// ================= Catalogue PR (structure Strivee) =================
+const PR_CATALOG = [{
+  id: "lift",
+  label: "Lift",
+  groups: [{
+    id: "squats",
+    label: "Squats",
+    color: "#EF4444",
+    unit: "kg",
+    items: ["Back Squat", "Front Squat", "Overhead Squat"]
+  }, {
+    id: "cleans",
+    label: "Cleans",
+    color: "#3B82F6",
+    unit: "kg",
+    items: ["Clean", "Hang Power Clean", "Hang Squat Clean", "Muscle Clean", "Power Clean", "Squat Clean"]
+  }, {
+    id: "presses",
+    label: "Presses",
+    color: "#F59E0B",
+    unit: "kg",
+    items: ["Bench Press", "Cluster", "Push Press", "Shoulder Press", "Thruster"]
+  }, {
+    id: "jerks",
+    label: "Jerks",
+    color: "#10B981",
+    unit: "kg",
+    items: ["Push Jerk", "Split Jerk"]
+  }, {
+    id: "snatches",
+    label: "Snatches",
+    color: "#3B82F6",
+    unit: "kg",
+    items: ["Hang Power Snatch", "Hang Squat Snatch", "Muscle Snatch", "Power Snatch", "Snatch", "Snatch Balance", "Squat Snatch"]
+  }, {
+    id: "deadlifts",
+    label: "Deadlifts",
+    color: "#EC4899",
+    unit: "kg",
+    items: ["Deadlift", "Snatch Grip Deadlift", "Sumo Deadlift"]
+  }, {
+    id: "olympic",
+    label: "Olympic Lifts",
+    color: "#EF4444",
+    unit: "kg",
+    items: ["Clean & Jerk", "Power Clean & Jerk"]
+  }]
+}, {
+  id: "gym",
+  label: "Gym",
+  groups: [{
+    id: "maxreps",
+    label: "Max Reps",
+    color: "#EF4444",
+    unit: "reps",
+    items: ["Bar Muscle-ups", "Chest-to-Bar", "Chest-to-Bar Strict", "Dips", "Double Unders", "HSPU Kipping", "HSPU Strict", "Pistols", "Pull-ups", "Pull-ups Strict", "Push-ups", "Ring Dips", "Ring Dips Strict", "Ring Muscle-ups", "Ring Push-ups", "Toes-to-bar"]
+  }, {
+    id: "gym1rm",
+    label: "1 RM",
+    color: "#3B82F6",
+    unit: "kg",
+    items: ["Weighted Dip", "Weighted Pull-up"]
+  }, {
+    id: "maxdist",
+    label: "Max Distance",
+    color: "#F59E0B",
+    unit: "m",
+    items: ["Handstand Walk"]
+  }, {
+    id: "maxtime",
+    label: "Max Time",
+    color: "#10B981",
+    unit: "time",
+    items: ["Handstand Hold", "L-Sit Hold", "Plank Hold", "Dead Hang"]
+  }]
+}, {
+  id: "cardio",
+  label: "Cardio",
+  groups: [{
+    id: "run",
+    label: "Run",
+    color: "#EF4444",
+    unit: "time",
+    items: ["400m Run", "800m Run", "1km Run", "1600m Run", "2km Run", "3km Run", "5km Run", "10km Run", "Half Marathon Run", "Marathon Run"]
+  }, {
+    id: "row",
+    label: "Row",
+    color: "#3B82F6",
+    unit: "time",
+    items: ["250m Row", "500m Row", "1000m Row", "2000m Row", "5km Row", "10km Row"]
+  }, {
+    id: "ski",
+    label: "Ski Erg",
+    color: "#F59E0B",
+    unit: "time",
+    items: ["250m Ski", "500m Ski", "1000m Ski", "2000m Ski"]
+  }, {
+    id: "bike",
+    label: "Assault Bike",
+    color: "#10B981",
+    unit: "time",
+    items: ["25 Cal", "50 Cal", "100 Cal"]
+  }, {
+    id: "burpees",
+    label: "Burpees",
+    color: "#3B82F6",
+    unit: "time",
+    items: ["30 Burpees", "50 Burpees", "100 Burpees"]
+  }]
+}, {
+  id: "benchmarks",
+  label: "Benchmarks",
+  groups: [{
+    id: "girls",
+    label: "Girls",
+    color: "#EF4444",
+    unit: "time",
+    items: ["Amanda", "Andi", "Angie", "Annie", "Barbara", "Chelsea", "Cindy", "Diane", "Elizabeth", "Eva", "Fran", "Grace", "Helen", "Isabel", "Jackie", "Karen", "Kelly", "Linda", "Lynne", "Mary", "Nancy", "Nicole"]
+  }, {
+    id: "heroes",
+    label: "Heroes",
+    color: "#3B82F6",
+    unit: "time",
+    items: ["Abbate", "Badger", "Blake", "Bradley", "Bradshaw", "Brenton", "Bulger", "Chad", "Coe", "DT", "Daniel", "Danny", "Donny", "Drew", "Glen", "Hammer", "Holbrook", "Holleyman", "Hotshots 19", "J.T.", "Jack", "Jerry", "Josh", "Klepto", "Loredo", "Lumberjack 20", "Manion", "McGhee", "Michael", "Moore", "Morrison", "Murph", "Nate", "Nutts", "Omar", "Rahoi", "Randy", "Rankel", "Roy", "Ryan", "The Seven", "Tommy V", "Tyler", "White", "Whitten", "Wittman", "Wood", "Zeus"]
+  }, {
+    id: "open",
+    label: "Open",
+    color: "#F59E0B",
+    unit: "",
+    items: ["Open 26.3", "Open 26.2", "Open 26.1", "Open 25.3", "Open 25.2 / 22.3", "Open 25.1", "Open 24.3", "Open 24.2", "Open 24.1", "Open 23.3", "Open 23.2 B", "Open 23.2 A", "Open 23.1", "Open 22.2", "Open 22.1", "Open 21.4", "Open 21.3", "Open 21.2 / 17.1", "Open 21.1", "Open 20.5", "Open 20.4", "Open 20.3 / 18.4", "Open 20.2", "Open 20.1", "Open 19.5", "Open 19.4", "Open 19.3", "Open 19.2 / 16.2", "Open 19.1", "Open 18.3", "Open 18.2 A", "Open 18.2", "Open 18.1", "Open 17.5", "Open 17.4 / 16.4", "Open 17.3", "Open 17.2", "Open 16.5 / 14.5", "Open 16.3", "Open 16.1", "Open 15.5", "Open 15.4", "Open 15.3", "Open 15.2 / 14.2", "Open 15.1 A", "Open 15.1", "Open 14.4", "Open 14.3", "Open 14.1 / 11.1", "Open 13.5", "Open 13.4", "Open 13.3 / 12.4", "Open 13.2", "Open 13.1", "Open 12.3", "Open 12.2", "Open 12.1", "Open 11.5", "Open 11.4", "Open 11.3", "Open 11.2"]
+  }, {
+    id: "notable",
+    label: "Notable",
+    color: "#10B981",
+    unit: "",
+    items: ["AbMat Sit-ups: 100 Reps For Time", "Baseline", "Beast 12", "Cindy XXX", "CrossFit Total", "Death By - Burpees", "Death By - Pull-ups", "Dirty Thirty", "Double Unders: 100 Reps For Time", "Double Unders: AMRAP 2min", "Fight Gone Bad", "Filthy Fifty", "G.I. Jane", "Hope For Kenya", "Jeremy", "Kalsu", "Muscle-ups: 30 Reps For Time", "Nasty Girls", "Saved by the Barbell", "Tabata Something Else", "Tabata This!", "The Chief", "The Ghost"]
+  }]
+}];
+
+// Index nom -> {famille, groupe, unite}
+const PR_INDEX = (() => {
+  const m = {};
+  PR_CATALOG.forEach(f => {
+    f.groups.forEach(g => {
+      g.items.forEach(it => {
+        m[it.toLowerCase()] = {
+          fam: f.id,
+          group: g.id,
+          unit: g.unit,
+          color: g.color,
+          name: it
+        };
+      });
+    });
+  });
+  return m;
+})();
+
+// Barèmes "100%" — levées = ratio du poids de corps, gym = reps, cardio = secondes
+const REF_LIFT = {
+  "Back Squat": 2.0,
+  "Front Squat": 1.6,
+  "Overhead Squat": 1.2,
+  "Clean": 1.5,
+  "Power Clean": 1.3,
+  "Squat Clean": 1.5,
+  "Hang Power Clean": 1.2,
+  "Hang Squat Clean": 1.3,
+  "Muscle Clean": 1.0,
+  "Snatch": 1.2,
+  "Power Snatch": 1.0,
+  "Squat Snatch": 1.2,
+  "Hang Power Snatch": 0.95,
+  "Hang Squat Snatch": 1.05,
+  "Muscle Snatch": 0.8,
+  "Snatch Balance": 1.1,
+  "Bench Press": 1.5,
+  "Shoulder Press": 0.9,
+  "Push Press": 1.2,
+  "Thruster": 1.3,
+  "Cluster": 1.2,
+  "Push Jerk": 1.4,
+  "Split Jerk": 1.5,
+  "Deadlift": 2.5,
+  "Sumo Deadlift": 2.5,
+  "Snatch Grip Deadlift": 2.0,
+  "Clean & Jerk": 1.4,
+  "Power Clean & Jerk": 1.2,
+  "Weighted Dip": 0.8,
+  "Weighted Pull-up": 0.6
+};
+const REF_GYM = {
+  "Bar Muscle-ups": 20,
+  "Chest-to-Bar": 40,
+  "Chest-to-Bar Strict": 15,
+  "Dips": 50,
+  "Double Unders": 200,
+  "HSPU Kipping": 40,
+  "HSPU Strict": 20,
+  "Pistols": 60,
+  "Pull-ups": 50,
+  "Pull-ups Strict": 25,
+  "Push-ups": 100,
+  "Ring Dips": 30,
+  "Ring Dips Strict": 20,
+  "Ring Muscle-ups": 15,
+  "Ring Push-ups": 40,
+  "Toes-to-bar": 60,
+  "Handstand Walk": 100
+};
+const REF_CARDIO = {
+  "400m Run": 60,
+  "800m Run": 140,
+  "1km Run": 180,
+  "1600m Run": 300,
+  "2km Run": 390,
+  "3km Run": 600,
+  "5km Run": 1080,
+  "10km Run": 2280,
+  "Half Marathon Run": 5100,
+  "Marathon Run": 10800,
+  "250m Row": 42,
+  "500m Row": 88,
+  "1000m Row": 185,
+  "2000m Row": 390,
+  "5km Row": 1050,
+  "10km Row": 2160,
+  "250m Ski": 45,
+  "500m Ski": 95,
+  "1000m Ski": 200,
+  "2000m Ski": 420,
+  "25 Cal": 55,
+  "50 Cal": 120,
+  "100 Cal": 260,
+  "30 Burpees": 75,
+  "50 Burpees": 135,
+  "100 Burpees": 300
+};
+
+// --------- helpers valeurs ---------
+function prToNumber(v, unit) {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  if (unit === "time") {
+    const p = s.split(":").map(x => parseFloat(x.replace(",", ".")));
+    if (p.some(x => isNaN(x))) return null;
+    if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
+    if (p.length === 2) return p[0] * 60 + p[1];
+    return p[0];
+  }
+  const n = parseFloat(s.replace(",", ".").replace(/[^0-9.\-]/g, ""));
+  return isNaN(n) ? null : n;
+}
+function prFormat(v, unit) {
+  if (v === undefined || v === null || v === "") return "";
+  const s = String(v).trim();
+  if (unit === "kg") return s.replace(/kg/i, "").trim() + " kg";
+  if (unit === "reps") return s.replace(/reps?/i, "").trim() + " reps";
+  if (unit === "m") return s.replace(/m$/i, "").trim() + " m";
+  return s;
+}
+function prBest(entries, unit, rm) {
+  const list = (entries || []).filter(e => rm ? (e.rm || "1RM") === rm : true);
+  let best = null;
+  list.forEach(e => {
+    const n = prToNumber(e.value, unit);
+    if (n === null) return;
+    if (best === null) best = e;else {
+      const bn = prToNumber(best.value, unit);
+      if (unit === "time" ? n < bn : n > bn) best = e;
+    }
+  });
+  return best;
+}
+function prScore(name, unit, entries, profile) {
+  const best = prBest(entries, unit, unit === "kg" ? "1RM" : null);
+  if (!best) return null;
+  const n = prToNumber(best.value, unit);
+  if (n === null || n <= 0) return null;
+  const bw = profile && parseFloat(profile.weight) || 80;
+  const sexF = profile && profile.sex === "F" ? 0.78 : 1;
+  if (REF_LIFT[name] !== undefined) {
+    const ref = REF_LIFT[name] * bw * sexF;
+    return Math.max(0, Math.min(100, n / ref * 100));
+  }
+  if (REF_GYM[name] !== undefined) {
+    const ref = REF_GYM[name] * (profile && profile.sex === "F" ? 0.85 : 1);
+    return Math.max(0, Math.min(100, n / ref * 100));
+  }
+  if (REF_CARDIO[name] !== undefined) {
+    const ref = REF_CARDIO[name] * (profile && profile.sex === "F" ? 1.12 : 1);
+    return Math.max(0, Math.min(100, ref / n * 100));
+  }
+  return null;
+}
+function prFamilyScore(famId, records, profile) {
+  const fam = PR_CATALOG.find(f => f.id === famId);
+  if (!fam) return null;
+  const scores = [];
+  fam.groups.forEach(g => {
+    g.items.forEach(name => {
+      const s = prScore(name, g.unit, records[name], profile);
+      if (s !== null) scores.push(s);
+    });
+  });
+  if (!scores.length) return null;
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+function prFitLevel(records, profile) {
+  const parts = ["lift", "gym", "cardio"].map(f => prFamilyScore(f, records, profile));
+  const ok = parts.filter(p => p !== null);
+  return {
+    lift: parts[0],
+    gym: parts[1],
+    cardio: parts[2],
+    total: ok.length ? ok.reduce((a, b) => a + b, 0) / ok.length : null
+  };
+}
+// Migration ancien format -> nouveau (clé = nom du mouvement)
+function prMigrate(old) {
+  if (!old || typeof old !== "object") return {};
+  const oldKeys = ["haltero", "gym", "course", "muscu"];
+  const keys = Object.keys(old);
+  const isOld = keys.length > 0 && keys.every(k => oldKeys.indexOf(k) >= 0);
+  if (!isOld) return old;
+  const out = {};
+  keys.forEach(k => {
+    (old[k] || []).forEach(mv => {
+      const nm = mv && mv.name || "Mouvement";
+      out[nm] = (mv && mv.entries || []).map(e => ({
+        id: e.id,
+        date: e.date,
+        value: e.value,
+        rm: e.rm || "1RM"
+      }));
+    });
+  });
+  return out;
+}
+// Résout "@70 Back Squat" -> "70 kg (70% de 100 kg)"
+function prResolvePercents(text, records) {
+  if (!text || text.indexOf("@") < 0) return text;
+  const names = Object.keys(PR_INDEX);
+  return String(text).replace(/@\s*(\d{1,3})\s*%?\s*([A-Za-zÀ-ÿ'&\-\. ]{2,40})?/g, (match, pct, rest) => {
+    const p = parseInt(pct, 10);
+    if (!p || p > 100) return match;
+    const tail = (rest || "").trim();
+    let found = null;
+    const low = tail.toLowerCase();
+    names.forEach(n => {
+      if (low.indexOf(n) === 0 && (!found || n.length > found.length)) found = n;
+    });
+    if (!found) return match;
+    const info = PR_INDEX[found];
+    const best = prBest(records[info.name], "kg", "1RM");
+    if (!best) return match;
+    const max = prToNumber(best.value, "kg");
+    if (!max) return match;
+    const kg = Math.round(max * p / 100 * 2) / 2;
+    const after = tail.slice(found.length);
+    return "@" + p + "% " + info.name + " → " + kg + " kg" + after;
+  });
+}
+function PrRing({
+  value,
+  size = 132
+}) {
+  const r = (size - 18) / 2;
+  const c = 2 * Math.PI * r;
+  const v = value === null || value === undefined ? 0 : Math.max(0, Math.min(100, value));
+  const off = c - v / 100 * c;
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 " + size + " " + size
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: size / 2,
+    cy: size / 2,
+    r: r,
+    fill: "none",
+    stroke: "#F1F5F9",
+    strokeWidth: "11"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: size / 2,
+    cy: size / 2,
+    r: r,
+    fill: "none",
+    stroke: "#6EC6A8",
+    strokeWidth: "11",
+    strokeLinecap: "round",
+    strokeDasharray: c,
+    strokeDashoffset: off,
+    transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "50%",
+    y: "50%",
+    textAnchor: "middle",
+    dy: "4",
+    style: {
+      fontSize: 34,
+      fontWeight: 800,
+      fill: "#0F172A"
+    }
+  }, value === null || value === undefined ? "—" : Math.round(value)), /*#__PURE__*/React.createElement("text", {
+    x: "50%",
+    y: "50%",
+    textAnchor: "middle",
+    dy: "26",
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      fill: "#94A3B8"
+    }
+  }, "%"));
+}
+function PrBar({
+  label,
+  value
+}) {
+  const v = value === null || value === undefined ? 0 : Math.max(0, Math.min(100, value));
+  const col = v >= 70 ? "#34D399" : v >= 50 ? "#FBBF24" : "#FB923C";
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-slate-800 text-[15px]"
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-[15px]",
+    style: {
+      color: col
+    }
+  }, value === null || value === undefined ? "—" : Math.round(value), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-semibold"
+  }, " %"))), /*#__PURE__*/React.createElement("div", {
+    className: "h-2.5 rounded-full",
+    style: {
+      background: "#F1F5F9"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-2.5 rounded-full",
+    style: {
+      width: v + "%",
+      background: col
+    }
+  })));
+}
+function PrGraph({
+  entries,
+  unit
+}) {
+  const pts = (entries || []).map(e => ({
+    t: e.date,
+    v: prToNumber(e.value, unit)
+  })).filter(p => p.v !== null).sort((a, b) => a.t < b.t ? -1 : 1);
+  if (pts.length === 0) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "h-48 flex items-center justify-center text-slate-500 text-sm"
+    }, "Aucune donnée");
+  }
+  const W = 300,
+    H = 170,
+    PAD = 26;
+  const vals = pts.map(p => p.v);
+  const max = Math.max.apply(null, vals);
+  const min = 0;
+  const x = i => pts.length === 1 ? W / 2 : PAD + i * (W - PAD - 8) / (pts.length - 1);
+  const y = v => H - 18 - (v - min) / (max - min || 1) * (H - 42);
+  const line = pts.map((p, i) => x(i) + "," + y(p.v)).join(" ");
+  const area = "M " + x(0) + "," + (H - 18) + " L " + pts.map((p, i) => x(i) + "," + y(p.v)).join(" L ") + " L " + x(pts.length - 1) + "," + (H - 18) + " Z";
+  const ticks = [max, max * 0.75, max * 0.5, max * 0.25, 0];
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 " + W + " " + H,
+    className: "w-full"
+  }, ticks.map((t, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: PAD,
+    y1: y(t),
+    x2: W - 6,
+    y2: y(t),
+    stroke: "#3F3F46",
+    strokeWidth: "0.5",
+    strokeDasharray: "3 3"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: PAD - 4,
+    y: y(t) + 3,
+    textAnchor: "end",
+    style: {
+      fontSize: 7,
+      fill: "#A1A1AA"
+    }
+  }, unit === "time" ? Math.round(t) : Math.round(t)))), /*#__PURE__*/React.createElement("path", {
+    d: area,
+    fill: "rgba(255,255,255,0.10)"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: line,
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: "1.6"
+  }), pts.map((p, i) => /*#__PURE__*/React.createElement("circle", {
+    key: i,
+    cx: x(i),
+    cy: y(p.v),
+    r: "2.6",
+    fill: "#111",
+    stroke: "#fff",
+    strokeWidth: "1.4"
+  })));
+}
+function MovementPage({
+  name,
+  unit,
+  entries,
+  onAdd,
+  onDelete,
+  onBack
+}) {
+  const [tab, setTab] = useState("pr");
+  const [page, setPage] = useState(0);
+  const [adding, setAdding] = useState(false);
+  const [val, setVal] = useState("");
+  const [rm, setRm] = useState("1RM");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const isKg = unit === "kg";
+  const RMS = ["1RM", "2RM", "3RM", "5RM"];
+  const best = prBest(entries, unit, isKg ? "1RM" : null);
+  const bestN = best ? prToNumber(best.value, unit) : null;
+  const PCTS = [100, 95, 90, 85, 80, 75, 70, 65, 60, 50, 40, 30];
+  const hist = (entries || []).slice().sort((a, b) => a.date < b.date ? 1 : -1);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "max-w-xl mx-auto px-4 pb-28"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between py-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    className: "w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20
+  })), /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-bold text-slate-900 truncate px-2"
+  }, name), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(true),
+    className: "w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 20
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 mb-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab("pr"),
+    className: "px-5 py-2 rounded-full text-sm font-bold " + (tab === "pr" ? "bg-slate-900 text-white" : "text-slate-400")
+  }, "Personal Record"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab("an"),
+    className: "px-5 py-2 rounded-full text-sm font-bold " + (tab === "an" ? "bg-slate-900 text-white" : "text-slate-400")
+  }, "Analytics")), isKg ? /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-4 rounded-2xl p-1 mb-4",
+    style: {
+      background: "#F1F5F9"
+    }
+  }, RMS.map(r => {
+    const b = prBest(entries, unit, r);
+    const on = r === "1RM";
+    return /*#__PURE__*/React.createElement("div", {
+      key: r,
+      className: "py-2 rounded-xl text-center " + (on ? "bg-white shadow-sm" : "")
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-lg font-bold text-slate-800"
+    }, b ? prToNumber(b.value, unit) : "—"), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-slate-500"
+    }, r));
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl p-4 mb-4 text-center",
+    style: {
+      background: "#F1F5F9"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl font-bold text-slate-800"
+  }, best ? prFormat(best.value, unit) : "—"), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500"
+  }, "Record")), tab === "pr" ? /*#__PURE__*/React.createElement("div", null, page === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl p-4",
+    style: {
+      background: "#111"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-white text-2xl font-bold mb-2"
+  }, best ? prFormat(best.value, unit) : "—"), /*#__PURE__*/React.createElement(PrGraph, {
+    entries: entries,
+    unit: unit
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl p-2",
+    style: {
+      background: "#F8FAFC"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-4 gap-1"
+  }, PCTS.map((p, i) => {
+    const kg = bestN ? Math.round(bestN * p / 100 * 2) / 2 : null;
+    const hi = p === 100;
+    const lo = p === 50;
+    return /*#__PURE__*/React.createElement("div", {
+      key: p,
+      className: "py-3 rounded-xl text-center",
+      style: {
+        background: hi ? "#DCFCE7" : lo ? "#FEE2E2" : i % 8 < 4 ? "#F1F5F9" : "#FFFFFF"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-bold",
+      style: {
+        color: hi ? "#15803D" : lo ? "#DC2626" : "#334155"
+      }
+    }, p, /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px]"
+    }, "%")), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] font-semibold text-slate-500"
+    }, kg !== null ? kg + "kg" : "—"));
+  }))), isKg ? /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center gap-1.5 py-3"
+  }, [0, 1].map(i => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setPage(i),
+    className: "w-2 h-2 rounded-full",
+    style: {
+      background: page === i ? "#334155" : "#CBD5E1"
+    }
+  }))) : /*#__PURE__*/React.createElement("div", {
+    className: "py-2"
+  }), /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-slate-900 mt-2 mb-1"
+  }, "Historique"), hist.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-8 text-center"
+  }, "Aucun record enregistré.") : /*#__PURE__*/React.createElement("div", null, hist.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.id,
+    className: "flex items-center gap-3 py-3 border-b border-slate-100"
+  }, isKg ? /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-semibold text-slate-600 border border-slate-200 rounded-md px-2 py-1"
+  }, e.rm || "1RM") : null, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-600 flex-1"
+  }, e.date), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-slate-800"
+  }, prFormat(e.value, unit)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDelete(e.id),
+    className: "text-slate-300 hover:text-red-500"
+  }, /*#__PURE__*/React.createElement(Trash2, {
+    size: 15
+  })))))) : /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl p-5",
+    style: {
+      background: "#F8FAFC"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-slate-700 mb-3"
+  }, "Progression"), hist.length < 2 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400"
+  }, "Ajoute au moins deux records pour voir ta progression.") : (() => {
+    const s = hist.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+    const f = prToNumber(s[0].value, unit);
+    const l = prToNumber(s[s.length - 1].value, unit);
+    const up = unit === "time" ? f - l : l - f;
+    const pct = f ? Math.round(up / f * 100) : 0;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "space-y-2 text-sm"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-500"
+    }, "Premier"), /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold"
+    }, prFormat(s[0].value, unit), " · ", s[0].date)), /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-500"
+    }, "Dernier"), /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold"
+    }, prFormat(s[s.length - 1].value, unit), " · ", s[s.length - 1].date)), /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-500"
+    }, "Records"), /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold"
+    }, hist.length)), /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-500"
+    }, "Progression"), /*#__PURE__*/React.createElement("span", {
+      className: "font-bold",
+      style: {
+        color: pct >= 0 ? "#059669" : "#DC2626"
+      }
+    }, pct >= 0 ? "+" : "", pct, " %")));
+  })()), adding ? /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+    style: {
+      background: "rgba(15,23,42,0.45)"
+    },
+    onClick: () => setAdding(false)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-sm bg-white rounded-2xl shadow-xl p-5",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-semibold text-slate-800 mb-3"
+  }, name), isKg ? /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-4 gap-1.5 mb-3"
+  }, RMS.map(r => /*#__PURE__*/React.createElement("button", {
+    key: r,
+    onClick: () => setRm(r),
+    className: "py-2 rounded-lg text-xs font-bold border " + (rm === r ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600")
+  }, r))) : null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Performance ", unit === "time" ? "(mm:ss)" : unit === "kg" ? "(kg)" : unit === "reps" ? "(reps)" : unit === "m" ? "(m)" : ""), /*#__PURE__*/React.createElement("input", {
+    value: val,
+    onChange: e => setVal(e.target.value),
+    placeholder: unit === "time" ? "ex. 3:45" : unit === "kg" ? "ex. 100" : "ex. 25",
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("label", {
+    className: "block text-xs font-medium text-slate-500 mb-1"
+  }, "Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: date,
+    onChange: e => setDate(e.target.value),
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(false),
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (!val.trim()) return;
+      onAdd(val, date, rm);
+      setVal("");
+      setAdding(false);
+    },
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Enregistrer")))) : null);
+}
+function RecordsPage({
+  records,
+  onAddEntry,
+  onDeleteEntry,
+  onClose
+}) {
+  const [famId, setFamId] = useState("lift");
+  const [groupId, setGroupId] = useState("all");
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(null);
+  const fam = PR_CATALOG.find(f => f.id === famId) || PR_CATALOG[0];
+  if (open) {
+    const info = PR_INDEX[open.toLowerCase()] || {
+      unit: ""
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+    }, /*#__PURE__*/React.createElement(MovementPage, {
+      name: open,
+      unit: info.unit,
+      entries: records[open] || [],
+      onAdd: (v, d, rm) => onAddEntry(open, v, d, rm),
+      onDelete: id => onDeleteEntry(open, id),
+      onBack: () => setOpen(null)
+    }));
+  }
+  const groups = fam.groups.filter(g => groupId === "all" || g.id === groupId);
+  const ql = q.trim().toLowerCase();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-xl mx-auto px-4 pb-32"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between pt-4 pb-1"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-3xl font-extrabold text-slate-300"
+  }, "PRs"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 22
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 mb-3 overflow-x-auto"
+  }, PR_CATALOG.map(f => /*#__PURE__*/React.createElement("button", {
+    key: f.id,
+    onClick: () => {
+      setFamId(f.id);
+      setGroupId("all");
+    },
+    className: "px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap " + (famId === f.id ? "bg-slate-900 text-white" : "text-slate-400")
+  }, f.label))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 overflow-x-auto pb-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setGroupId("all"),
+    className: "px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap shrink-0 " + (groupId === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600")
+  }, "All"), fam.groups.map(g => /*#__PURE__*/React.createElement("button", {
+    key: g.id,
+    onClick: () => setGroupId(g.id),
+    className: "px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap shrink-0",
+    style: groupId === g.id ? {
+      background: g.color,
+      color: "#fff"
+    } : {
+      background: g.color + "22",
+      color: g.color
+    }
+  }, g.label))), groups.map(g => {
+    const items = g.items.filter(it => !ql || it.toLowerCase().indexOf(ql) >= 0);
+    if (!items.length) return null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: g.id,
+      className: "mb-2"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 py-3"
+    }, /*#__PURE__*/React.createElement("h2", {
+      className: "text-xl font-bold text-slate-900"
+    }, g.label), /*#__PURE__*/React.createElement("span", {
+      className: "w-2 h-2 rounded-full",
+      style: {
+        background: g.color
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "border-t border-slate-100"
+    }, items.map(it => {
+      const b = prBest(records[it], g.unit, g.unit === "kg" ? "1RM" : null);
+      return /*#__PURE__*/React.createElement("button", {
+        key: it,
+        onClick: () => setOpen(it),
+        className: "w-full flex items-center justify-between py-3.5 border-b border-slate-100 text-left hover:bg-slate-50"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-slate-700"
+      }, it), /*#__PURE__*/React.createElement("span", {
+        className: "text-slate-500 font-medium"
+      }, b ? prFormat(b.value, g.unit) : ""));
+    })));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "fixed bottom-4 left-0 right-0 px-6 z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-lg mx-auto flex items-center gap-2 bg-white rounded-full px-4 py-3 shadow-lg border border-slate-100"
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 18,
+    className: "text-slate-400 shrink-0"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: "Rechercher un exercice",
+    className: "flex-1 text-[15px] outline-none bg-transparent"
+  }), q ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setQ(""),
+    className: "text-slate-400"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 16
+  })) : null)));
+}
+function ProfilePage({
+  profile,
+  records,
+  email,
+  onSave,
+  onClose
+}) {
+  const [p, setP] = useState(profile || {});
+  const fit = prFitLevel(records || {}, p);
+  const initials = (p.name || email || "?").slice(0, 2).toUpperCase();
+  const field = (label, key, type, ph) => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-slate-800 mb-1"
+  }, label), /*#__PURE__*/React.createElement("input", {
+    type: type || "text",
+    value: p[key] || "",
+    onChange: e => setP({
+      ...p,
+      [key]: e.target.value
+    }),
+    placeholder: ph || "—",
+    className: "w-full text-slate-500 text-[15px] outline-none border-b border-transparent focus:border-slate-300 pb-1"
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-xl mx-auto px-4 pb-28"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-end pt-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 22
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4 mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold",
+    style: {
+      background: "#111"
+    }
+  }, initials), /*#__PURE__*/React.createElement("h1", {
+    className: "text-3xl font-extrabold text-slate-900 leading-tight"
+  }, p.name || email || "Athlète")), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl border border-slate-100 shadow-sm p-4 mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement(PrBar, {
+    label: "Haltérophilie",
+    value: fit.lift
+  }), /*#__PURE__*/React.createElement(PrBar, {
+    label: "Gymnastique",
+    value: fit.gym
+  }), /*#__PURE__*/React.createElement(PrBar, {
+    label: "Cardio",
+    value: fit.cardio
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-center shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-bold text-slate-700 mb-1 flex items-center justify-center gap-1"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 13
+  }), " FIT LEVEL"), /*#__PURE__*/React.createElement(PrRing, {
+    value: fit.total
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-3 leading-relaxed"
+  }, "Calculé à partir de tes records : chaque mouvement est comparé à un barème de référence (ratio du poids de corps pour les levées). Renseigne ton poids et ton sexe pour un calcul juste.")), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl border border-slate-100 shadow-sm p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-4 mb-4"
+  }, field("Age", "age", "number"), field("Taille", "height", "number", "cm"), field("Poids", "weight", "number", "kg")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4 mb-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-slate-800 mb-1"
+  }, "Sexe"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1.5"
+  }, ["H", "F"].map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => setP({
+      ...p,
+      sex: s
+    }),
+    className: "px-3 py-1 rounded-lg text-xs font-bold border " + (p.sex === s ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-500")
+  }, s)))), field("Nom", "name")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4"
+  }, field("Pays", "country"), field("Affiliée", "box")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onSave(p),
+    className: "w-full mt-5 px-4 py-2.5 text-sm font-semibold rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Enregistrer"))));
+}
 function CoachPicker({
   coaches,
   pendingCoachId,
@@ -4696,10 +5439,12 @@ function ClientDay({
   onSelectProgram,
   blocks,
   onOpenRecords,
+  onOpenProfile,
   coachName,
   pendingCoachName,
   onChangeCoach,
-  notice
+  notice,
+  records
 }) {
   const monday = mondayOf(0);
   const week = Array.from({
@@ -4729,7 +5474,7 @@ function ClientDay({
       className: "text-xs text-slate-400 mt-0.5"
     }, b.duration) : null, b.content ? /*#__PURE__*/React.createElement("div", {
       className: "text-[15px] text-slate-700 whitespace-pre-wrap mt-2 leading-relaxed"
-    }, b.content) : null, b.tip ? /*#__PURE__*/React.createElement("div", {
+    }, prResolvePercents(b.content, records || {})) : null, b.tip ? /*#__PURE__*/React.createElement("div", {
       className: "mt-3 flex gap-2 items-start rounded-lg px-3 py-2",
       style: {
         background: "#FFFBEB",
@@ -4855,7 +5600,14 @@ function ClientDay({
     size: 18
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-semibold"
-  }, "Mes records"))));
+  }, "Mes records")), /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenProfile,
+    className: "flex-1 py-2.5 flex flex-col items-center gap-0.5 text-slate-400"
+  }, /*#__PURE__*/React.createElement(UserRound, {
+    size: 18
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-semibold"
+  }, "Mon profil"))));
 }
 function AssignModal({
   programName,
