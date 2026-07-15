@@ -1462,6 +1462,10 @@ function App() {
   const [recordDetail, setRecordDetail] = useState(null);
   const [recordEditor, setRecordEditor] = useState(null);
   const [role, setRole] = useState("coach");
+  const [myProfile, setMyProfile] = useState(null);
+  const [coaches, setCoaches] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [coachPicker, setCoachPicker] = useState(false);
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [athletes, setAthletes] = useState(null);
   const [athleteDetail, setAthleteDetail] = useState(null);
@@ -1846,7 +1850,8 @@ function App() {
         if (!uid) return;
         const {
           data: prof
-        } = await supa.from("profiles").select("role").eq("user_id", uid).maybeSingle();
+        } = await supa.from("profiles").select("role, coach_id, pending_coach_id").eq("user_id", uid).maybeSingle();
+        if (!cancelled) setMyProfile(prof || {});
         const dbRole = prof && prof.role;
         if (cancelled) return;
         if (dbRole === "client") setRole("client");
@@ -1857,6 +1862,54 @@ function App() {
       cancelled = true;
     };
   }, []);
+  const myUid = async () => {
+    const { data: u } = await supa.auth.getUser();
+    return u && u.user && u.user.id;
+  };
+  const loadCoaches = async () => {
+    try {
+      const { data } = await supa.from("profiles").select("user_id, email, name").eq("role", "coach");
+      setCoaches(data || []);
+    } catch (e) {
+      setCoaches([]);
+    }
+  };
+  const loadRequests = async () => {
+    try {
+      const uid = await myUid();
+      const { data } = await supa.from("profiles").select("user_id, email, name").eq("pending_coach_id", uid);
+      setRequests(data || []);
+    } catch (e) {
+      setRequests([]);
+    }
+  };
+  const requestCoach = async (coachId) => {
+    try {
+      const uid = await myUid();
+      await supa.from("profiles").update({ pending_coach_id: coachId }).eq("user_id", uid);
+      setMyProfile((p) => ({ ...(p || {}), pending_coach_id: coachId }));
+      setCoachPicker(false);
+    } catch (e) {}
+  };
+  const acceptRequest = async (userId) => {
+    try {
+      const uid = await myUid();
+      await supa.from("profiles").update({ coach_id: uid, pending_coach_id: null }).eq("user_id", userId);
+      await loadRequests();
+      await loadAthletes();
+    } catch (e) {}
+  };
+  const refuseRequest = async (userId) => {
+    try {
+      await supa.from("profiles").update({ pending_coach_id: null }).eq("user_id", userId);
+      await loadRequests();
+    } catch (e) {}
+  };
+  useEffect(() => {
+    if (role === "coach") loadRequests();
+    if (role === "client") loadCoaches();
+  }, [role]);
+
   const loadAthletes = async () => {
     setAthletes(null);
     try {
@@ -2609,11 +2662,37 @@ function App() {
       background: "#111"
     }
   }, "Enregistrer")))));
-  if (role === "client") return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ClientDay, {
-    programName: activeName,
-    blocks: blocks,
-    onOpenRecords: () => setRecordsOpen(true)
-  }), recordsOverlay);
+  if (role === "client") {
+    const coachOf = (id) => {
+      const c = coaches.find((x) => x.user_id === id);
+      return c ? c.name || c.email : null;
+    };
+    if (myProfile === null) {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "w-full min-h-screen flex items-center justify-center text-slate-400 text-sm"
+      }, "Chargement\u2026");
+    }
+    if (!myProfile.coach_id || coachPicker) {
+      return /*#__PURE__*/React.createElement(CoachPicker, {
+        coaches: coaches,
+        pendingCoachId: myProfile.pending_coach_id,
+        currentCoachId: myProfile.coach_id,
+        onChoose: requestCoach,
+        onCancel: myProfile.coach_id ? () => setCoachPicker(false) : null
+      });
+    }
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ClientDay, {
+      programName: activeName,
+      blocks: blocks,
+      onOpenRecords: () => setRecordsOpen(true),
+      coachName: coachOf(myProfile.coach_id),
+      pendingCoachName: myProfile.pending_coach_id ? coachOf(myProfile.pending_coach_id) : null,
+      onChangeCoach: () => {
+        loadCoaches();
+        setCoachPicker(true);
+      }
+    }), recordsOverlay);
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "w-full min-h-screen text-slate-800",
     style: {
@@ -2682,11 +2761,12 @@ function App() {
       setAthletesOpen(true);
       setAthleteDetail(null);
       loadAthletes();
+      loadRequests();
     },
     className: "px-3 py-1.5 font-medium border-l border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1"
   }, /*#__PURE__*/React.createElement(Users, {
     size: 14
-  }), " Athlètes")), /*#__PURE__*/React.createElement("div", {
+  }), " Athlètes", requests.length > 0 ? " (" + requests.length + ")" : "")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center rounded-lg border border-slate-200 bg-white"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => viewMode === "month" ? setMonthOffset(m => m - 1) : setWeekOffset(w => w - 1),
@@ -3351,7 +3431,11 @@ function App() {
     }
     return /*#__PURE__*/React.createElement("div", {
       className: "max-w-xl mx-auto px-4 py-4"
-    }, athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(CoachRequests, {
+      requests: requests,
+      onAccept: acceptRequest,
+      onRefuse: refuseRequest
+    }), athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
       className: "text-sm text-slate-400 py-10 text-center"
     }, "Aucun athlète lié à ton compte pour le moment.", /*#__PURE__*/React.createElement("br", null), "Les comptes clients créés avec ton identifiant comme coach apparaîtront ici avec leurs records.") : /*#__PURE__*/React.createElement("div", {
       className: "space-y-1"
@@ -4388,10 +4472,102 @@ function BlockEditor({
     }
   }, mode === "new" ? "Ajouter le bloc" : "Enregistrer"))));
 }
+function CoachPicker({
+  coaches,
+  pendingCoachId,
+  currentCoachId,
+  onChoose,
+  onCancel
+}) {
+  const pending = coaches.find(c => c.user_id === pendingCoachId);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-full min-h-screen flex items-center justify-center px-4 py-8",
+    style: {
+      background: "#F1F5F9",
+      fontFamily: "'Inter', system-ui, sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold mb-4",
+    style: {
+      background: "#111"
+    }
+  }, "R"), /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-semibold text-slate-800 mb-1"
+  }, "Choisis ton coach"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mb-5"
+  }, "Ton coach doit valider ta demande. Ensuite tu auras accès à ta programmation."), pending ? /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl border border-amber-200 bg-amber-50 p-4 text-center mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-amber-700"
+  }, "Demande envoyée à ", pending.name || pending.email), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-amber-600 mt-1"
+  }, "En attente de validation…")) : null, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, coaches.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 text-center py-6"
+  }, "Aucun coach disponible pour le moment.") : coaches.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.user_id,
+    onClick: () => onChoose(c.user_id),
+    className: "w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left " + (c.user_id === currentCoachId ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:bg-slate-50")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium text-slate-800 truncate"
+  }, c.name || c.email), c.user_id === currentCoachId ? /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-400"
+  }, "Coach actuel") : null, c.user_id === pendingCoachId ? /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-amber-600"
+  }, "Demande en cours") : null), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    className: "text-slate-300 shrink-0"
+  })))), onCancel ? /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    className: "w-full mt-4 px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+  }, "Annuler") : null));
+}
+function CoachRequests({
+  requests,
+  onAccept,
+  onRefuse
+}) {
+  if (!requests || requests.length === 0) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mb-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-bold uppercase tracking-wider text-amber-600 mb-2"
+  }, "Demandes en attente (", requests.length, ")"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, requests.map(r => /*#__PURE__*/React.createElement("div", {
+    key: r.user_id,
+    className: "rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-center justify-between gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium text-slate-800 truncate"
+  }, r.name || r.email), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500 truncate"
+  }, r.email)), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 shrink-0"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => onRefuse(r.user_id),
+    className: "px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+  }, "Refuser"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onAccept(r.user_id),
+    className: "px-3 py-1.5 text-xs font-semibold rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Accepter"))))));
+}
 function ClientDay({
   programName,
   blocks,
-  onOpenRecords
+  onOpenRecords,
+  coachName,
+  pendingCoachName,
+  onChangeCoach
 }) {
   const monday = mondayOf(0);
   const week = Array.from({
@@ -4463,8 +4639,21 @@ function ClientDay({
       background: "#0F172A"
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "px-4 pt-3 pb-2 text-center text-white font-bold text-base"
+    className: "px-4 pt-3 pb-1 text-center text-white font-bold text-base"
   }, programName), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center gap-2 pb-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-400"
+  }, "Coach : ", coachName || "—"), /*#__PURE__*/React.createElement("button", {
+    onClick: onChangeCoach,
+    className: "text-[11px] font-semibold text-indigo-300 hover:text-indigo-200 underline"
+  }, "Changer")), pendingCoachName ? /*#__PURE__*/React.createElement("div", {
+    className: "mx-3 mb-2 rounded-lg px-3 py-1.5 text-center text-[11px] font-medium",
+    style: {
+      background: "#78350F",
+      color: "#FCD34D"
+    }
+  }, "Demande envoyée à ", pendingCoachName, " · en attente de validation") : null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1 px-2 pb-3"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setIdx(i => Math.max(0, i - 1)),
