@@ -1466,6 +1466,9 @@ function App() {
   const [coaches, setCoaches] = useState([]);
   const [requests, setRequests] = useState([]);
   const [coachPicker, setCoachPicker] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignments, setAssignments] = useState([]);
+  const [clientProg, setClientProg] = useState(undefined);
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [athletes, setAthletes] = useState(null);
   const [athleteDetail, setAthleteDetail] = useState(null);
@@ -1665,6 +1668,16 @@ function App() {
           records
         }));
         setSaveStatus("saved");
+        if (role === "coach") {
+          try {
+            const uid2 = await myUid();
+            await supa.from("client_programs").update({
+              name: activeName,
+              data: programData[activeId] || {},
+              updated_at: new Date().toISOString()
+            }).eq("coach_id", uid2).eq("program_id", activeId);
+          } catch (e) {}
+        }
       } catch (e) {
         setSaveStatus("error");
       }
@@ -1909,6 +1922,56 @@ function App() {
     if (role === "coach") loadRequests();
     if (role === "client") loadCoaches();
   }, [role]);
+
+  const loadAssignments = async () => {
+    try {
+      const uid = await myUid();
+      const { data } = await supa.from("client_programs").select("client_id, published").eq("coach_id", uid).eq("program_id", activeId);
+      setAssignments(data || []);
+    } catch (e) {
+      setAssignments([]);
+    }
+  };
+  const pushProgram = async (clientId, published) => {
+    const uid = await myUid();
+    await supa.from("client_programs").upsert({
+      coach_id: uid,
+      client_id: clientId,
+      program_id: activeId,
+      name: activeName,
+      data: programData[activeId] || {},
+      published: !!published,
+      updated_at: new Date().toISOString()
+    });
+  };
+  const assignClient = async (clientId) => {
+    try { await pushProgram(clientId, false); await loadAssignments(); } catch (e) {}
+  };
+  const unassignClient = async (clientId) => {
+    try {
+      const uid = await myUid();
+      await supa.from("client_programs").delete().eq("coach_id", uid).eq("client_id", clientId).eq("program_id", activeId);
+      await loadAssignments();
+    } catch (e) {}
+  };
+  const togglePublish = async (clientId, cur) => {
+    try { await pushProgram(clientId, !cur); await loadAssignments(); } catch (e) {}
+  };
+  useEffect(() => {
+    if (role !== "client" || !myProfile || !myProfile.coach_id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const uid = await myUid();
+        const { data } = await supa.from("client_programs").select("name, data, updated_at").eq("client_id", uid).eq("published", true);
+        const rows = (data || []).slice().sort((a, b) => (String(a.updated_at) < String(b.updated_at) ? 1 : -1));
+        if (!cancelled) setClientProg(rows[0] || null);
+      } catch (e) {
+        if (!cancelled) setClientProg(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [role, myProfile && myProfile.coach_id]);
 
   const loadAthletes = async () => {
     setAthletes(null);
@@ -2681,9 +2744,12 @@ function App() {
         onCancel: myProfile.coach_id ? () => setCoachPicker(false) : null
       });
     }
+    const cpBlocks = clientProg && clientProg.data && clientProg.data.blocks ? clientProg.data.blocks : {};
+    const cpNotice = clientProg === undefined ? "Chargement de ta programmation\u2026" : clientProg === null ? "Ton coach n'a pas encore publi\u00e9 de programmation pour toi." : null;
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ClientDay, {
-      programName: activeName,
-      blocks: blocks,
+      programName: clientProg && clientProg.name ? clientProg.name : "Ma programmation",
+      blocks: cpBlocks,
+      notice: cpNotice,
       onOpenRecords: () => setRecordsOpen(true),
       coachName: coachOf(myProfile.coach_id),
       pendingCoachName: myProfile.pending_coach_id ? coachOf(myProfile.pending_coach_id) : null,
@@ -2846,7 +2912,16 @@ function App() {
     }
   }, /*#__PURE__*/React.createElement(Sparkles, {
     size: 16
-  }), " Créateur"), /*#__PURE__*/React.createElement("button", {
+  }), " Créateur"), role === "coach" && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAssignOpen(true);
+      loadAthletes();
+      loadAssignments();
+    },
+    className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 16
+  }), " Diffusion"), /*#__PURE__*/React.createElement("button", {
     onClick: undo,
     className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
   }, /*#__PURE__*/React.createElement(Undo2, {
@@ -3350,7 +3425,15 @@ function App() {
         background: "#111"
       }
     }, cycleEdit.mode === "new" ? "Créer le cycle" : "Enregistrer")))));
-  })(), recordsOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
+  })(), assignOpen && /*#__PURE__*/React.createElement(AssignModal, {
+    programName: activeName,
+    athletes: athletes,
+    assignments: assignments,
+    onAssign: assignClient,
+    onUnassign: unassignClient,
+    onTogglePublish: togglePublish,
+    onClose: () => setAssignOpen(false)
+  }), recordsOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
     className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
@@ -4567,7 +4650,8 @@ function ClientDay({
   onOpenRecords,
   coachName,
   pendingCoachName,
-  onChangeCoach
+  onChangeCoach,
+  notice
 }) {
   const monday = mondayOf(0);
   const week = Array.from({
@@ -4689,7 +4773,9 @@ function ClientDay({
     className: "max-w-2xl mx-auto px-3 py-4 pb-28"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-sm font-semibold text-slate-500 mb-3"
-  }, DAYS_FR[idx], " ", d.getDate(), " ", MONTHS_FR[d.getMonth()].toLowerCase()), list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, DAYS_FR[idx], " ", d.getDate(), " ", MONTHS_FR[d.getMonth()].toLowerCase()), notice ? /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-slate-400 text-sm py-16 px-6 leading-relaxed"
+  }, notice) : list.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "text-center text-slate-400 text-sm py-16"
   }, "Rien de programmé ce jour.") : sections.map((s, si) => /*#__PURE__*/React.createElement("div", {
     key: si,
@@ -4715,6 +4801,89 @@ function ClientDay({
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-semibold"
   }, "Mes records"))));
+}
+function AssignModal({
+  programName,
+  athletes,
+  assignments,
+  onAssign,
+  onUnassign,
+  onTogglePublish,
+  onClose
+}) {
+  const find = id => assignments.find(a => a.client_id === id);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+    style: {
+      background: "rgba(15,23,42,0.45)"
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-md max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-semibold text-slate-800 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 18,
+    className: "text-indigo-500"
+  }), " Diffusion aux athlètes"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 18
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "px-5 py-4 overflow-y-auto flex-1"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mb-4"
+  }, "Programme : ", /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-slate-600"
+  }, programName)), athletes === null ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-6 text-center"
+  }, "Chargement…") : athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-6 text-center"
+  }, "Aucun athlète rattaché à ton compte pour le moment.") : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, athletes.map(a => {
+    const as = find(a.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: a.id,
+      className: "rounded-xl border border-slate-200 p-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between gap-2"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "min-w-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800 truncate"
+    }, a.name || a.email), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] truncate",
+      style: {
+        color: as ? as.published ? "#059669" : "#B45309" : "#94A3B8"
+      }
+    }, as ? as.published ? "Publié — visible par l'athlète" : "En attente — non visible" : "Non assigné")), as ? /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-1.5 shrink-0"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => onTogglePublish(a.id, as.published),
+      className: "px-3 py-1.5 text-xs font-semibold rounded-lg " + (as.published ? "text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"),
+      style: as.published ? {
+        background: "#059669"
+      } : {}
+    }, as.published ? "Publié" : "En attente"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onUnassign(a.id),
+      className: "px-2 py-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-500"
+    }, /*#__PURE__*/React.createElement(Trash2, {
+      size: 14
+    }))) : /*#__PURE__*/React.createElement("button", {
+      onClick: () => onAssign(a.id),
+      className: "px-3 py-1.5 text-xs font-semibold rounded-lg text-white shrink-0",
+      style: {
+        background: "#111"
+      }
+    }, "Assigner")));
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-4 leading-relaxed"
+  }, "« Assigner » relie ce programme à l'athlète. Il ne le voit que lorsque tu passes sur « Publié ». Tes modifications sont envoyées automatiquement."))));
 }
 function Gate() {
   const [session, setSession] = useState(undefined); // undefined = chargement
