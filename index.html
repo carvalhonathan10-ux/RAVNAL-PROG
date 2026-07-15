@@ -1831,6 +1831,12 @@ function App() {
   };
   useEffect(() => {
     let cancelled = false;
+    let choice = null;
+    try {
+      const m = localStorage.getItem("ravnal-mode");
+      if (m === "client" || m === "coach") choice = m;
+    } catch (e) {}
+    if (choice && !cancelled) setRole(choice);
     (async () => {
       try {
         const {
@@ -1841,7 +1847,10 @@ function App() {
         const {
           data: prof
         } = await supa.from("profiles").select("role").eq("user_id", uid).maybeSingle();
-        if (!cancelled && prof && prof.role) setRole(prof.role);
+        const dbRole = prof && prof.role;
+        if (cancelled) return;
+        if (dbRole === "client") setRole("client");
+        else if (!choice && dbRole) setRole(dbRole);
       } catch (e) {}
     })();
     return () => {
@@ -4379,6 +4388,13 @@ function Gate() {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState(() => {
+    try {
+      return localStorage.getItem("ravnal-mode") === "client" ? "client" : "coach";
+    } catch (e) {
+      return "coach";
+    }
+  });
   useEffect(() => {
     supa.auth.getSession().then(({
       data
@@ -4392,6 +4408,9 @@ function Gate() {
     if (!email || !pw) return;
     setBusy(true);
     setErr("");
+    try {
+      localStorage.setItem("ravnal-mode", mode);
+    } catch (e) {}
     const {
       error
     } = await supa.auth.signInWithPassword({
@@ -4418,7 +4437,17 @@ function Gate() {
     className: "text-xl font-semibold text-slate-800 mb-1"
   }, "RAVNAL PROGRAMMATION"), /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-400 mb-6"
-  }, "Connecte-toi pour accéder à ta programmation."), /*#__PURE__*/React.createElement("input", {
+  }, "Connecte-toi pour accéder à ta programmation."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 mb-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setMode("coach"),
+    className: "px-3 py-2 rounded-lg border text-sm font-semibold " + (mode === "coach" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")
+  }, "Admin"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setMode("client"),
+    className: "px-3 py-2 rounded-lg border text-sm font-semibold " + (mode === "client" ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")
+  }, "Client")), /*#__PURE__*/React.createElement("input", {
     type: "email",
     inputMode: "email",
     autoCapitalize: "none",
@@ -4448,6 +4477,42 @@ function Gate() {
   }, busy ? "Connexion…" : "Se connecter")));
 }
 createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Gate, null));
+</script>
+<script>
+(function(){
+  var SURL="https://xfltsucwsdpccwnomgnt.supabase.co";
+  var SKEY="sb_publishable_dGJ5JZyOQ1On-rwtDmyQbw_gDQhqjif";
+  var sb=null;
+  function client(){ if(!sb){ try{ sb=window.supabase.createClient(SURL,SKEY);}catch(e){} } return sb; }
+  function logout(btn){
+    if(btn) btn.textContent="...";
+    var c=client();
+    var done=function(){ try{Object.keys(localStorage).forEach(function(k){ if(k.indexOf("sb-")===0)localStorage.removeItem(k);});}catch(e){} location.reload(); };
+    if(c){ c.auth.signOut().then(done).catch(done); } else { done(); }
+  }
+  function make(email){
+    if(document.getElementById("ravnal-logout"))return;
+    var w=document.createElement("div");
+    w.id="ravnal-logout";
+    w.style.cssText="position:fixed;bottom:14px;right:10px;z-index:99999;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.97);border:1px solid #e2e8f0;border-radius:9999px;padding:4px 5px 4px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.12);font:12px system-ui,-apple-system,sans-serif";
+    var s=document.createElement("span");
+    s.textContent=email;
+    s.style.cssText="color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    var b=document.createElement("button");
+    b.textContent="Deconnexion";
+    b.style.cssText="background:#111;color:#fff;border:0;border-radius:9999px;padding:6px 12px;font:600 12px system-ui;cursor:pointer";
+    b.onclick=function(){ logout(b); };
+    w.appendChild(s); w.appendChild(b);
+    document.body.appendChild(w);
+  }
+  var n=0;
+  var iv=setInterval(function(){
+    n++;
+    var c=client();
+    if(c){ c.auth.getUser().then(function(r){ var em=r&&r.data&&r.data.user&&r.data.user.email; if(em){ make(em); clearInterval(iv);} }).catch(function(){}); }
+    if(n>80)clearInterval(iv);
+  },500);
+})();
 </script>
 </body>
 </html>
