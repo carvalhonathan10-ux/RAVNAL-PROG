@@ -1468,7 +1468,9 @@ function App() {
   const [coachPicker, setCoachPicker] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignments, setAssignments] = useState([]);
-  const [clientProg, setClientProg] = useState(undefined);
+  const [clientProgs, setClientProgs] = useState(undefined);
+  const [clientProgIdx, setClientProgIdx] = useState(0);
+  const [assignError, setAssignError] = useState("");
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [athletes, setAthletes] = useState(null);
   const [athleteDetail, setAthleteDetail] = useState(null);
@@ -1944,30 +1946,39 @@ function App() {
       updated_at: new Date().toISOString()
     });
   };
-  const assignClient = async (clientId) => {
-    try { await pushProgram(clientId, false); await loadAssignments(); } catch (e) {}
-  };
-  const unassignClient = async (clientId) => {
+  const toggleDiffusion = async (clientId, on) => {
+    setAssignError("");
     try {
       const uid = await myUid();
-      await supa.from("client_programs").delete().eq("coach_id", uid).eq("client_id", clientId).eq("program_id", activeId);
+      const res = await supa.from("client_programs").upsert({
+        coach_id: uid,
+        client_id: clientId,
+        program_id: activeId,
+        name: activeName,
+        data: programData[activeId] || {},
+        published: !on,
+        updated_at: new Date().toISOString()
+      });
+      if (res && res.error) throw res.error;
       await loadAssignments();
-    } catch (e) {}
-  };
-  const togglePublish = async (clientId, cur) => {
-    try { await pushProgram(clientId, !cur); await loadAssignments(); } catch (e) {}
+    } catch (e) {
+      setAssignError("Enregistrement impossible : " + ((e && e.message) || "erreur inconnue") + ". Vérifie que le script SQL « client_programs » a bien été exécuté dans Supabase.");
+    }
   };
   useEffect(() => {
-    if (role !== "client" || !myProfile || !myProfile.coach_id) return;
+    if (role !== "client" || !myProfile) return;
     let cancelled = false;
     (async () => {
       try {
         const uid = await myUid();
-        const { data } = await supa.from("client_programs").select("name, data, updated_at").eq("client_id", uid).eq("published", true);
-        const rows = (data || []).slice().sort((a, b) => (String(a.updated_at) < String(b.updated_at) ? 1 : -1));
-        if (!cancelled) setClientProg(rows[0] || null);
+        const { data } = await supa.from("client_programs").select("coach_id, program_id, name, data, updated_at").eq("client_id", uid).eq("published", true);
+        const rows = (data || []).slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+        if (!cancelled) {
+          setClientProgs(rows);
+          setClientProgIdx(0);
+        }
       } catch (e) {
-        if (!cancelled) setClientProg(null);
+        if (!cancelled) setClientProgs([]);
       }
     })();
     return () => { cancelled = true; };
@@ -2744,10 +2755,17 @@ function App() {
         onCancel: myProfile.coach_id ? () => setCoachPicker(false) : null
       });
     }
-    const cpBlocks = clientProg && clientProg.data && clientProg.data.blocks ? clientProg.data.blocks : {};
-    const cpNotice = clientProg === undefined ? "Chargement de ta programmation\u2026" : clientProg === null ? "Ton coach n'a pas encore publi\u00e9 de programmation pour toi." : null;
+    const progList = (clientProgs || []).map((p) => ({
+      name: p.name || "Programmation",
+      coachName: coachOf(p.coach_id)
+    }));
+    const curProg = clientProgs && clientProgs.length ? clientProgs[Math.min(clientProgIdx, clientProgs.length - 1)] : null;
+    const cpBlocks = curProg && curProg.data && curProg.data.blocks ? curProg.data.blocks : {};
+    const cpNotice = clientProgs === undefined ? "Chargement de tes programmations\u2026" : !clientProgs.length ? "Aucune programmation ne t'a encore \u00e9t\u00e9 diffus\u00e9e par un coach." : null;
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ClientDay, {
-      programName: clientProg && clientProg.name ? clientProg.name : "Ma programmation",
+      programs: progList,
+      progIdx: Math.min(clientProgIdx, Math.max(0, progList.length - 1)),
+      onSelectProgram: setClientProgIdx,
       blocks: cpBlocks,
       notice: cpNotice,
       onOpenRecords: () => setRecordsOpen(true),
@@ -3429,10 +3447,12 @@ function App() {
     programName: activeName,
     athletes: athletes,
     assignments: assignments,
-    onAssign: assignClient,
-    onUnassign: unassignClient,
-    onTogglePublish: togglePublish,
-    onClose: () => setAssignOpen(false)
+    onToggle: toggleDiffusion,
+    error: assignError,
+    onClose: () => {
+      setAssignOpen(false);
+      setAssignError("");
+    }
   }), recordsOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4562,7 +4582,12 @@ function CoachPicker({
   onChoose,
   onCancel
 }) {
+  const [confirmId, setConfirmId] = useState(null);
   const pending = coaches.find(c => c.user_id === pendingCoachId);
+  const target = coaches.find(c => c.user_id === confirmId);
+  const click = id => {
+    if (currentCoachId && id !== currentCoachId) setConfirmId(id);else if (!currentCoachId) onChoose(id);
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "w-full min-h-screen flex items-center justify-center px-4 py-8",
     style: {
@@ -4578,7 +4603,7 @@ function CoachPicker({
     }
   }, "R"), /*#__PURE__*/React.createElement("h1", {
     className: "text-lg font-semibold text-slate-800 mb-1"
-  }, "Choisis ton coach"), /*#__PURE__*/React.createElement("p", {
+  }, currentCoachId ? "Changer de coach" : "Choisis ton coach"), /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-400 mb-5"
   }, "Ton coach doit valider ta demande. Ensuite tu auras accès à ta programmation."), pending ? /*#__PURE__*/React.createElement("div", {
     className: "rounded-xl border border-amber-200 bg-amber-50 p-4 text-center mb-4"
@@ -4586,13 +4611,34 @@ function CoachPicker({
     className: "text-sm font-semibold text-amber-700"
   }, "Demande envoyée à ", pending.name || pending.email), /*#__PURE__*/React.createElement("div", {
     className: "text-xs text-amber-600 mt-1"
-  }, "En attente de validation…")) : null, /*#__PURE__*/React.createElement("div", {
+  }, "En attente de validation…")) : null, confirmId ? /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl border border-slate-200 bg-slate-50 p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-slate-800 mb-1"
+  }, "Changer de coach ?"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-500 leading-relaxed mb-4"
+  }, "Tu demandes ", target ? target.name || target.email : "ce coach", " comme nouveau coach. Ta demande devra être validée. Les programmations que tes coachs t'ont déjà publiées ne sont pas supprimées."), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmId(null),
+    className: "flex-1 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-white"
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      const id = confirmId;
+      setConfirmId(null);
+      onChoose(id);
+    },
+    className: "flex-1 px-3 py-2 text-sm font-semibold rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Confirmer"))) : /*#__PURE__*/React.createElement("div", {
     className: "space-y-2"
   }, coaches.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "text-sm text-slate-400 text-center py-6"
   }, "Aucun coach disponible pour le moment.") : coaches.map(c => /*#__PURE__*/React.createElement("button", {
     key: c.user_id,
-    onClick: () => onChoose(c.user_id),
+    onClick: () => click(c.user_id),
     className: "w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left " + (c.user_id === currentCoachId ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:bg-slate-50")
   }, /*#__PURE__*/React.createElement("div", {
     className: "min-w-0"
@@ -4605,10 +4651,10 @@ function CoachPicker({
   }, "Demande en cours") : null), /*#__PURE__*/React.createElement(ChevronRight, {
     size: 16,
     className: "text-slate-300 shrink-0"
-  })))), onCancel ? /*#__PURE__*/React.createElement("button", {
+  })))), onCancel && !confirmId ? /*#__PURE__*/React.createElement("button", {
     onClick: onCancel,
     className: "w-full mt-4 px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
-  }, "Annuler") : null));
+  }, "Retour") : null));
 }
 function CoachRequests({
   requests,
@@ -4645,7 +4691,9 @@ function CoachRequests({
   }, "Accepter"))))));
 }
 function ClientDay({
-  programName,
+  programs,
+  progIdx,
+  onSelectProgram,
   blocks,
   onOpenRecords,
   coachName,
@@ -4664,6 +4712,7 @@ function ClientDay({
   const DAYS_SHORT = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
   const d = week[idx];
   const list = blocks[keyOf(d)] || [];
+  const cur = programs && programs.length ? programs[progIdx] : null;
   const renderBlock = b => {
     const c = COLORS[b.color] || COLORS[0];
     return /*#__PURE__*/React.createElement("div", {
@@ -4723,12 +4772,18 @@ function ClientDay({
       background: "#0F172A"
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "px-4 pt-3 pb-1 text-center text-white font-bold text-base"
-  }, programName), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pt-3 pb-2 text-center text-white font-bold text-base"
+  }, cur ? cur.name : "Ma programmation"), programs && programs.length > 1 ? /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1.5 overflow-x-auto px-3 pb-2"
+  }, programs.map((p, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => onSelectProgram(i),
+    className: "px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap shrink-0 " + (i === progIdx ? "bg-white text-slate-900" : "bg-white/10 text-slate-300")
+  }, p.name))) : null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center gap-2 pb-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] text-slate-400"
-  }, "Coach : ", coachName || "—"), /*#__PURE__*/React.createElement("button", {
+  }, cur && cur.coachName ? "Par " + cur.coachName + " · " : "", "Coach : ", coachName || "—"), /*#__PURE__*/React.createElement("button", {
     onClick: onChangeCoach,
     className: "text-[11px] font-semibold text-indigo-300 hover:text-indigo-200 underline"
   }, "Changer")), pendingCoachName ? /*#__PURE__*/React.createElement("div", {
@@ -4806,10 +4861,9 @@ function AssignModal({
   programName,
   athletes,
   assignments,
-  onAssign,
-  onUnassign,
-  onTogglePublish,
-  onClose
+  onToggle,
+  onClose,
+  error
 }) {
   const find = id => assignments.find(a => a.client_id === id);
   return /*#__PURE__*/React.createElement("div", {
@@ -4828,7 +4882,7 @@ function AssignModal({
   }, /*#__PURE__*/React.createElement(Users, {
     size: 18,
     className: "text-indigo-500"
-  }), " Diffusion aux athlètes"), /*#__PURE__*/React.createElement("button", {
+  }), " Diffusion"), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "p-1 rounded hover:bg-slate-100 text-slate-500"
   }, /*#__PURE__*/React.createElement(X, {
@@ -4839,7 +4893,14 @@ function AssignModal({
     className: "text-xs text-slate-400 mb-4"
   }, "Programme : ", /*#__PURE__*/React.createElement("span", {
     className: "font-semibold text-slate-600"
-  }, programName)), athletes === null ? /*#__PURE__*/React.createElement("div", {
+  }, programName)), error ? /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 rounded-lg px-3 py-2 text-[12px]",
+    style: {
+      background: "#FEF2F2",
+      border: "1px solid #FECACA",
+      color: "#B91C1C"
+    }
+  }, error) : null, athletes === null ? /*#__PURE__*/React.createElement("div", {
     className: "text-sm text-slate-400 py-6 text-center"
   }, "Chargement…") : athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "text-sm text-slate-400 py-6 text-center"
@@ -4847,11 +4908,10 @@ function AssignModal({
     className: "space-y-2"
   }, athletes.map(a => {
     const as = find(a.id);
+    const on = !!(as && as.published);
     return /*#__PURE__*/React.createElement("div", {
       key: a.id,
-      className: "rounded-xl border border-slate-200 p-3"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center justify-between gap-2"
+      className: "rounded-xl border border-slate-200 p-3 flex items-center justify-between gap-2"
     }, /*#__PURE__*/React.createElement("div", {
       className: "min-w-0"
     }, /*#__PURE__*/React.createElement("div", {
@@ -4859,31 +4919,18 @@ function AssignModal({
     }, a.name || a.email), /*#__PURE__*/React.createElement("div", {
       className: "text-[11px] truncate",
       style: {
-        color: as ? as.published ? "#059669" : "#B45309" : "#94A3B8"
+        color: on ? "#059669" : "#94A3B8"
       }
-    }, as ? as.published ? "Publié — visible par l'athlète" : "En attente — non visible" : "Non assigné")), as ? /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-1.5 shrink-0"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => onTogglePublish(a.id, as.published),
-      className: "px-3 py-1.5 text-xs font-semibold rounded-lg " + (as.published ? "text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"),
-      style: as.published ? {
-        background: "#059669"
-      } : {}
-    }, as.published ? "Publié" : "En attente"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => onUnassign(a.id),
-      className: "px-2 py-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-500"
-    }, /*#__PURE__*/React.createElement(Trash2, {
-      size: 14
-    }))) : /*#__PURE__*/React.createElement("button", {
-      onClick: () => onAssign(a.id),
-      className: "px-3 py-1.5 text-xs font-semibold rounded-lg text-white shrink-0",
+    }, on ? "Diffusé — il voit la semaine" : as ? "En pause — non visible (programmation conservée)" : "Non diffusé")), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onToggle(a.id, on),
+      className: "px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 " + (on ? "text-white" : "text-white"),
       style: {
-        background: "#111"
+        background: on ? "#059669" : "#111"
       }
-    }, "Assigner")));
+    }, on ? "Diffusé ✓" : "Diffuser"));
   })), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-400 mt-4 leading-relaxed"
-  }, "« Assigner » relie ce programme à l'athlète. Il ne le voit que lorsque tu passes sur « Publié ». Tes modifications sont envoyées automatiquement."))));
+  }, "« Diffuser » donne accès à la semaine en cours sur le compte de l'athlète. Un second clic met en pause sans rien supprimer : tu peux rediffuser à tout moment, la programmation est conservée."))));
 }
 function Gate() {
   const [session, setSession] = useState(undefined); // undefined = chargement
