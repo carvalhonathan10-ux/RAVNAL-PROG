@@ -6351,10 +6351,13 @@ function AssignModal({
   }, "« Diffuser » donne accès à la semaine en cours sur le compte de l'athlète. Un second clic met en pause sans rien supprimer : tu peux rediffuser à tout moment, la programmation est conservée."))));
 }
 function Gate() {
-  const [session, setSession] = useState(undefined); // undefined = chargement
+  const [session, setSession] = useState(undefined);
+  const [tab, setTab] = useState("in");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
+  const [name, setName] = useState("");
   const [err, setErr] = useState("");
+  const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState(() => {
     try {
@@ -6376,6 +6379,7 @@ function Gate() {
     if (!email || !pw) return;
     setBusy(true);
     setErr("");
+    setInfo("");
     try {
       localStorage.setItem("ravnal-mode", mode);
     } catch (e) {}
@@ -6388,24 +6392,75 @@ function Gate() {
     if (error) setErr("Identifiants incorrects ou compte introuvable.");
     setBusy(false);
   };
+  const signUp = async () => {
+    setErr("");
+    setInfo("");
+    if (!email.trim() || !pw) {
+      setErr("Renseigne un email et un mot de passe.");
+      return;
+    }
+    if (pw.length < 6) {
+      setErr("Le mot de passe doit faire au moins 6 caractères.");
+      return;
+    }
+    setBusy(true);
+    try {
+      localStorage.setItem("ravnal-mode", "client");
+    } catch (e) {}
+    const {
+      data,
+      error
+    } = await supa.auth.signUp({
+      email: email.trim(),
+      password: pw,
+      options: {
+        data: {
+          name: name.trim()
+        }
+      }
+    });
+    if (error) {
+      const m = String(error.message || "");
+      if (/already/i.test(m)) setErr("Un compte existe déjà avec cet email. Utilise « Connexion ».");else setErr("Création impossible : " + m);
+    } else if (data && data.session) {
+      setInfo("");
+    } else {
+      setInfo("Compte créé. Confirme ton adresse email, puis connecte-toi.");
+      setTab("in");
+    }
+    setBusy(false);
+  };
   if (session === undefined) return /*#__PURE__*/React.createElement("div", {
     className: "w-full min-h-screen flex items-center justify-center text-slate-400"
   }, "Chargement…");
   if (session) return /*#__PURE__*/React.createElement(App, null);
   return /*#__PURE__*/React.createElement("div", {
-    className: "w-full min-h-screen flex items-center justify-center bg-slate-50 px-4"
+    className: "w-full min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-8 shadow-sm"
+    className: "w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold mb-4",
     style: {
       background: "#111"
     }
   }, "R"), /*#__PURE__*/React.createElement("h1", {
-    className: "text-xl font-semibold text-slate-800 mb-1"
+    className: "text-lg font-semibold text-slate-800 mb-1"
   }, "RAVNAL PROGRAMMATION"), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 mb-6"
-  }, "Connecte-toi pour accéder à ta programmation."), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 mb-5"
+  }, tab === "in" ? "Connecte-toi pour accéder à ta programmation." : "Crée ton compte athlète, puis choisis ton coach."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-1 p-1 rounded-xl mb-4",
+    style: {
+      background: "#F1F5F9"
+    }
+  }, [["in", "Connexion"], ["up", "Créer un compte"]].map(t => /*#__PURE__*/React.createElement("button", {
+    key: t[0],
+    onClick: () => {
+      setTab(t[0]);
+      setErr("");
+      setInfo("");
+    },
+    className: "py-2 rounded-lg text-sm font-semibold " + (tab === t[0] ? "bg-white shadow-sm text-slate-900" : "text-slate-500")
+  }, t[1]))), tab === "in" ? /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-2 gap-2 mb-4"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -6415,34 +6470,40 @@ function Gate() {
     type: "button",
     onClick: () => setMode("client"),
     className: "px-3 py-2 rounded-lg border text-sm font-semibold " + (mode === "client" ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")
-  }, "Client")), /*#__PURE__*/React.createElement("input", {
+  }, "Client")) : /*#__PURE__*/React.createElement("input", {
+    value: name,
+    onChange: e => setName(e.target.value),
+    placeholder: "Prénom Nom",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("input", {
     type: "email",
-    inputMode: "email",
-    autoCapitalize: "none",
-    autoCorrect: "off",
-    placeholder: "Email",
     value: email,
     onChange: e => setEmail(e.target.value),
-    className: "w-full mb-3 px-3 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+    placeholder: "Email",
+    autoComplete: "email",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
   }), /*#__PURE__*/React.createElement("input", {
     type: "password",
-    placeholder: "Mot de passe",
     value: pw,
     onChange: e => setPw(e.target.value),
     onKeyDown: e => {
-      if (e.key === "Enter") signIn();
+      if (e.key === "Enter") tab === "in" ? signIn() : signUp();
     },
-    className: "w-full mb-3 px-3 py-2.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
-  }), err && /*#__PURE__*/React.createElement("p", {
+    placeholder: tab === "in" ? "Mot de passe" : "Mot de passe (6 caractères min.)",
+    autoComplete: tab === "in" ? "current-password" : "new-password",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), err ? /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-red-500 mb-3"
-  }, err), /*#__PURE__*/React.createElement("button", {
-    onClick: signIn,
+  }, err) : null, info ? /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-emerald-600 mb-3"
+  }, info) : null, /*#__PURE__*/React.createElement("button", {
+    onClick: tab === "in" ? signIn : signUp,
     disabled: busy,
     className: "w-full px-4 py-2.5 text-sm font-medium rounded-lg text-white disabled:opacity-60",
     style: {
       background: "#111"
     }
-  }, busy ? "Connexion…" : "Se connecter")));
+  }, busy ? "…" : tab === "in" ? "Se connecter" : "Créer mon compte")));
 }
 createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(Gate, null));
 </script>
