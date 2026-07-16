@@ -1459,7 +1459,7 @@ function App() {
   const [generator, setGenerator] = useState(null);
   const [records, setRecords] = useState({});
   const [recordsOpen, setRecordsOpen] = useState(false);
-  const [role, setRole] = useState("coach");
+  const [role, setRole] = useState(null);
   const [myProfile, setMyProfile] = useState(null);
   const [coaches, setCoaches] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -1471,6 +1471,10 @@ function App() {
   const [assignError, setAssignError] = useState("");
   const [profile, setProfile] = useState({});
   const [profileOpen, setProfileOpen] = useState(false);
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [usersOpen, setUsersOpen] = useState(false);
+  const [users, setUsers] = useState(null);
+  const [userBusy, setUserBusy] = useState(null);
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [athletes, setAthletes] = useState(null);
   const [athleteDetail, setAthleteDetail] = useState(null);
@@ -1850,42 +1854,51 @@ function App() {
     setList(dateKey, [...getList(dateKey), nb]);
     setBlockClipboard(null);
   };
-  useEffect(() => {
-    let cancelled = false;
-    let choice = null;
+  const PROFILE_COLS = "user_id, email, name, role, coach_id, pending_coach_id, avatar, sex, height, weight, country, box";
+  const reloadMyProfile = async () => {
     try {
-      const m = localStorage.getItem("ravnal-mode");
-      if (m === "client" || m === "coach") choice = m;
+      const { data: u } = await supa.auth.getUser();
+      const uid = u && u.user && u.user.id;
+      if (!uid) return null;
+      const { data: prof } = await supa.from("profiles").select(PROFILE_COLS).eq("user_id", uid).maybeSingle();
+      const p = prof || { user_id: uid, email: (u.user && u.user.email) || "" };
+      setMyProfile(p);
+      setRole(p.role === "client" || !p.role ? "client" : "coach");
+      return p;
+    } catch (e) {
+      setMyProfile({});
+      setRole("client");
+      return null;
+    }
+  };
+  const saveMyProfile = async (p) => {
+    setProfileBusy(true);
+    try {
+      const uid = await myUid();
+      await supa.from("profiles").update({
+        name: p.name,
+        avatar: p.avatar,
+        sex: p.sex,
+        height: p.height === "" ? null : p.height,
+        weight: p.weight === "" ? null : p.weight,
+        country: p.country,
+        box: p.box
+      }).eq("user_id", uid);
+      await reloadMyProfile();
     } catch (e) {}
-    if (choice && !cancelled) setRole(choice);
-    (async () => {
-      try {
-        const {
-          data: u
-        } = await supa.auth.getUser();
-        const uid = u && u.user && u.user.id;
-        if (!uid) return;
-        const {
-          data: prof
-        } = await supa.from("profiles").select("role, coach_id, pending_coach_id").eq("user_id", uid).maybeSingle();
-        if (!cancelled) setMyProfile(prof || {});
-        const dbRole = prof && prof.role;
-        if (cancelled) return;
-        if (dbRole === "client") setRole("client");
-        else if (!choice && dbRole) setRole(dbRole);
-      } catch (e) {}
-    })();
-    return () => {
-      cancelled = true;
-    };
+    setProfileBusy(false);
+  };
+  useEffect(() => {
+    reloadMyProfile();
   }, []);
+
   const myUid = async () => {
     const { data: u } = await supa.auth.getUser();
     return u && u.user && u.user.id;
   };
   const loadCoaches = async () => {
     try {
-      const { data } = await supa.from("profiles").select("user_id, email, name").eq("role", "coach");
+      const { data } = await supa.from("profiles").select("user_id, email, name, avatar").eq("role", "coach");
       setCoaches(data || []);
     } catch (e) {
       setCoaches([]);
@@ -1894,7 +1907,7 @@ function App() {
   const loadRequests = async () => {
     try {
       const uid = await myUid();
-      const { data } = await supa.from("profiles").select("user_id, email, name").eq("pending_coach_id", uid);
+      const { data } = await supa.from("profiles").select("user_id, email, name, avatar").eq("pending_coach_id", uid);
       setRequests(data || []);
     } catch (e) {
       setRequests([]);
@@ -1926,6 +1939,24 @@ function App() {
     if (role === "coach") loadRequests();
     if (role === "client") loadCoaches();
   }, [role]);
+
+  const loadUsers = async () => {
+    setUsers(null);
+    try {
+      const { data } = await supa.from("profiles").select("user_id, email, name, role, avatar");
+      setUsers((data || []).slice().sort((a, b) => String(a.name || a.email || "").localeCompare(String(b.name || b.email || ""))));
+    } catch (e) {
+      setUsers([]);
+    }
+  };
+  const setUserRole = async (uid, r) => {
+    setUserBusy(uid);
+    try {
+      await supa.from("profiles").update({ role: r }).eq("user_id", uid);
+      await loadUsers();
+    } catch (e) {}
+    setUserBusy(null);
+  };
 
   const loadAssignments = async () => {
     try {
@@ -1995,7 +2026,7 @@ function App() {
       const uid = u && u.user && u.user.id;
       const {
         data: profs
-      } = await supa.from("profiles").select("user_id, email, name").eq("coach_id", uid);
+      } = await supa.from("profiles").select("user_id, email, name, avatar, sex, weight").eq("coach_id", uid);
       const out = [];
       for (const p of profs || []) {
         let recs = {};
@@ -2009,6 +2040,9 @@ function App() {
           id: p.user_id,
           email: p.email,
           name: p.name,
+          avatar: p.avatar,
+          sex: p.sex,
+          weight: p.weight,
           records: recs
         });
       }
@@ -2518,15 +2552,35 @@ function App() {
     onClose: () => setRecordsOpen(false)
   });
   const profileOverlay = profileOpen && /*#__PURE__*/React.createElement(ProfilePage, {
-    profile: profile,
+    profile: myProfile || {},
     records: records,
     email: (myProfile && myProfile.email) || "",
-    onSave: (p) => {
-      setProfile(p);
+    onSave: async (p) => {
+      await saveMyProfile(p);
       setProfileOpen(false);
     },
     onClose: () => setProfileOpen(false)
   });
+  const usersOverlay = usersOpen && /*#__PURE__*/React.createElement(UsersPage, {
+    users: users,
+    meId: myProfile && myProfile.user_id,
+    busyId: userBusy,
+    onSetRole: setUserRole,
+    onClose: () => setUsersOpen(false)
+  });
+  if (role === null) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "w-full min-h-screen flex items-center justify-center text-slate-400 text-sm"
+    }, "Chargement\u2026");
+  }
+  if (role === "client" && myProfile && !myProfile.sex) {
+    return /*#__PURE__*/React.createElement(OnboardingPage, {
+      profile: myProfile,
+      email: myProfile.email,
+      busy: profileBusy,
+      onSave: saveMyProfile
+    });
+  }
   if (role === "client") {
     const coachOf = (id) => {
       const c = coaches.find((x) => x.user_id === id);
@@ -2643,7 +2697,15 @@ function App() {
     className: "px-3 py-1.5 font-medium border-l border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1"
   }, /*#__PURE__*/React.createElement(Users, {
     size: 14
-  }), " Athlètes", requests.length > 0 ? " (" + requests.length + ")" : "")), /*#__PURE__*/React.createElement("div", {
+  }), " Athlètes", requests.length > 0 ? " (" + requests.length + ")" : ""), myProfile && myProfile.role === "admin" && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setUsersOpen(true);
+      loadUsers();
+    },
+    className: "px-3 py-1.5 font-medium border-l border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 14
+  }), " Utilisateurs")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center rounded-lg border border-slate-200 bg-white"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => viewMode === "month" ? setMonthOffset(m => m - 1) : setWeekOffset(w => w - 1),
@@ -3246,7 +3308,7 @@ function App() {
       setAssignOpen(false);
       setAssignError("");
     }
-  }), recordsOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
+  }), recordsOverlay, usersOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
     className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
@@ -3299,7 +3361,17 @@ function App() {
         className: "max-w-xl mx-auto px-4 py-4"
       }, /*#__PURE__*/React.createElement("h2", {
         className: "text-xl font-bold text-slate-900"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3"
+      }, /*#__PURE__*/React.createElement(Avatar, {
+        src: a.avatar,
+        name: a.name || a.email,
+        size: 56
+      }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+        className: "text-xl font-bold text-slate-900"
       }, a.name || a.email || "Athlète"), /*#__PURE__*/React.createElement("div", {
+        className: "text-[11px] text-slate-400"
+      }, [a.sex === "F" ? "Femme" : a.sex === "H" ? "Homme" : null, a.weight ? a.weight + " kg" : null].filter(Boolean).join(" · "))))), /*#__PURE__*/React.createElement("div", {
         className: "flex gap-2 overflow-x-auto pb-2 mt-3"
       }, RC.map(c => /*#__PURE__*/React.createElement("button", {
         key: c.id,
@@ -3340,9 +3412,13 @@ function App() {
     }, athletes.map(a => /*#__PURE__*/React.createElement("button", {
       key: a.id,
       onClick: () => setAthleteDetail(a.id),
-      className: "w-full flex items-center justify-between py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "font-medium text-slate-800"
+      className: "w-full flex items-center gap-3 py-3 px-3 rounded-lg border border-slate-100 hover:bg-slate-50 text-left"
+    }, /*#__PURE__*/React.createElement(Avatar, {
+      src: a.avatar,
+      name: a.name || a.email,
+      size: 40
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800 flex-1 min-w-0 truncate"
     }, a.name || a.email || "Athlète"), /*#__PURE__*/React.createElement(ChevronRight, {
       size: 16,
       className: "text-slate-300"
@@ -5984,6 +6060,266 @@ function ProfilePage({
     }
   }, "Enregistrer"))));
 }
+function prAvatarFromFile(file, cb) {
+  try {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const s = 256;
+        const c = document.createElement("canvas");
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext("2d");
+        const m = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, s, s);
+        cb(c.toDataURL("image/jpeg", 0.75));
+      };
+      img.onerror = () => cb(null);
+      img.src = r.result;
+    };
+    r.onerror = () => cb(null);
+    r.readAsDataURL(file);
+  } catch (e) {
+    cb(null);
+  }
+}
+function Avatar({
+  src,
+  name,
+  size = 44
+}) {
+  const initials = String(name || "?").split(" ").map(x => x[0]).slice(0, 2).join("").toUpperCase();
+  if (src) return /*#__PURE__*/React.createElement("img", {
+    src: src,
+    alt: "",
+    className: "rounded-full object-cover shrink-0",
+    style: {
+      width: size,
+      height: size
+    }
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rounded-full flex items-center justify-center text-white font-bold shrink-0",
+    style: {
+      width: size,
+      height: size,
+      background: "#111",
+      fontSize: size * 0.34
+    }
+  }, initials);
+}
+function OnboardingPage({
+  profile,
+  email,
+  onSave,
+  busy
+}) {
+  const [p, setP] = useState({
+    name: profile && profile.name || "",
+    avatar: profile && profile.avatar || "",
+    sex: profile && profile.sex || "",
+    height: profile && profile.height || "",
+    weight: profile && profile.weight || "",
+    country: profile && profile.country || ""
+  });
+  const [err, setErr] = useState("");
+  const fileRef = useRef(null);
+  const pick = e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    prAvatarFromFile(f, d => {
+      if (d) setP(x => ({
+        ...x,
+        avatar: d
+      }));
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-full min-h-screen flex items-center justify-center px-4 py-8",
+    style: {
+      background: "#F1F5F9",
+      fontFamily: "'Inter', system-ui, sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-semibold text-slate-800 mb-1"
+  }, "Crée ton profil"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mb-5"
+  }, "Ces infos servent à calculer ton Fit Level et à personnaliser ta programmation."), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center mb-5"
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    src: p.avatar,
+    name: p.name || email,
+    size: 92
+  }), /*#__PURE__*/React.createElement("input", {
+    ref: fileRef,
+    type: "file",
+    accept: "image/*",
+    onChange: pick,
+    className: "hidden"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => fileRef.current && fileRef.current.click(),
+    className: "mt-2 text-sm font-semibold text-indigo-600 hover:underline"
+  }, p.avatar ? "Changer la photo" : "Ajouter une photo"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-1"
+  }, "Photothèque ou appareil photo")), /*#__PURE__*/React.createElement("input", {
+    value: p.name,
+    onChange: e => setP({
+      ...p,
+      name: e.target.value
+    }),
+    placeholder: "Prénom Nom",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-2"
+  }, ["H", "F"].map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => setP({
+      ...p,
+      sex: s
+    }),
+    className: "flex-1 py-2.5 rounded-lg border text-sm font-semibold " + (p.sex === s ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600")
+  }, s === "H" ? "Homme" : "Femme"))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 mb-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: p.height,
+    onChange: e => setP({
+      ...p,
+      height: e.target.value
+    }),
+    placeholder: "Taille (cm)",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: p.weight,
+    onChange: e => setP({
+      ...p,
+      weight: e.target.value
+    }),
+    placeholder: "Poids (kg)",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
+  })), /*#__PURE__*/React.createElement("input", {
+    value: p.country,
+    onChange: e => setP({
+      ...p,
+      country: e.target.value
+    }),
+    placeholder: "Pays",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), err ? /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-red-500 mb-3"
+  }, err) : null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (!p.name.trim()) {
+        setErr("Indique ton nom.");
+        return;
+      }
+      if (!p.sex) {
+        setErr("Choisis Homme ou Femme.");
+        return;
+      }
+      setErr("");
+      onSave(p);
+    },
+    disabled: busy,
+    className: "w-full px-4 py-2.5 text-sm font-semibold rounded-lg text-white disabled:opacity-60",
+    style: {
+      background: "#111"
+    }
+  }, busy ? "…" : "Continuer")));
+}
+function UsersPage({
+  users,
+  meId,
+  onSetRole,
+  onClose,
+  busyId
+}) {
+  const [q, setQ] = useState("");
+  const ql = q.trim().toLowerCase();
+  const list = (users || []).filter(u => !ql || String(u.name || "").toLowerCase().indexOf(ql) >= 0 || String(u.email || "").toLowerCase().indexOf(ql) >= 0);
+  const badge = r => r === "admin" ? {
+    bg: "#111",
+    fg: "#fff",
+    t: "Admin"
+  } : r === "coach" ? {
+    bg: "#4F46E5",
+    fg: "#fff",
+    t: "Coach"
+  } : {
+    bg: "#F1F5F9",
+    fg: "#475569",
+    t: "Client"
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Users, {
+    size: 18,
+    className: "text-slate-700"
+  }), " Utilisateurs"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 20
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-xl mx-auto px-4 py-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 mb-4"
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 16,
+    className: "text-slate-400"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: "Rechercher",
+    className: "flex-1 bg-transparent text-sm outline-none"
+  })), users === null ? /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-slate-400 text-sm py-10"
+  }, "Chargement…") : list.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-slate-400 text-sm py-10"
+  }, "Aucun utilisateur.") : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, list.map(u => {
+    const b = badge(u.role);
+    const me = u.user_id === meId;
+    return /*#__PURE__*/React.createElement("div", {
+      key: u.user_id,
+      className: "flex items-center gap-3 rounded-xl border border-slate-200 p-3"
+    }, /*#__PURE__*/React.createElement(Avatar, {
+      src: u.avatar,
+      name: u.name || u.email,
+      size: 40
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "min-w-0 flex-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-medium text-slate-800 truncate"
+    }, u.name || "—"), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-slate-400 truncate"
+    }, u.email)), /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] font-bold px-2 py-1 rounded-full shrink-0",
+      style: {
+        background: b.bg,
+        color: b.fg
+      }
+    }, b.t), me || u.role === "admin" ? null : /*#__PURE__*/React.createElement("button", {
+      onClick: () => onSetRole(u.user_id, u.role === "coach" ? "client" : "coach"),
+      disabled: busyId === u.user_id,
+      className: "px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 disabled:opacity-50 " + (u.role === "coach" ? "border border-slate-200 text-slate-600" : "text-white"),
+      style: u.role === "coach" ? {} : {
+        background: "#4F46E5"
+      }
+    }, busyId === u.user_id ? "…" : u.role === "coach" ? "Retirer coach" : "Rendre coach"));
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-4 leading-relaxed"
+  }, "« Rendre coach » donne accès à la création de programmations et à la validation d'athlètes. Seul un admin peut le faire.")));
+}
 function CoachPicker({
   coaches,
   pendingCoachId,
@@ -6359,13 +6695,6 @@ function Gate() {
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState(() => {
-    try {
-      return localStorage.getItem("ravnal-mode") === "client" ? "client" : "coach";
-    } catch (e) {
-      return "coach";
-    }
-  });
   useEffect(() => {
     supa.auth.getSession().then(({
       data
@@ -6380,9 +6709,6 @@ function Gate() {
     setBusy(true);
     setErr("");
     setInfo("");
-    try {
-      localStorage.setItem("ravnal-mode", mode);
-    } catch (e) {}
     const {
       error
     } = await supa.auth.signInWithPassword({
@@ -6404,9 +6730,6 @@ function Gate() {
       return;
     }
     setBusy(true);
-    try {
-      localStorage.setItem("ravnal-mode", "client");
-    } catch (e) {}
     const {
       data,
       error
@@ -6460,22 +6783,12 @@ function Gate() {
       setInfo("");
     },
     className: "py-2 rounded-lg text-sm font-semibold " + (tab === t[0] ? "bg-white shadow-sm text-slate-900" : "text-slate-500")
-  }, t[1]))), tab === "in" ? /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-2 gap-2 mb-4"
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setMode("coach"),
-    className: "px-3 py-2 rounded-lg border text-sm font-semibold " + (mode === "coach" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")
-  }, "Admin"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setMode("client"),
-    className: "px-3 py-2 rounded-lg border text-sm font-semibold " + (mode === "client" ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")
-  }, "Client")) : /*#__PURE__*/React.createElement("input", {
+  }, t[1]))), tab === "up" ? /*#__PURE__*/React.createElement("input", {
     value: name,
     onChange: e => setName(e.target.value),
     placeholder: "Prénom Nom",
     className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-  }), /*#__PURE__*/React.createElement("input", {
+  }) : null, /*#__PURE__*/React.createElement("input", {
     type: "email",
     value: email,
     onChange: e => setEmail(e.target.value),
