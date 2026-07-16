@@ -1472,6 +1472,8 @@ function App() {
   const [profile, setProfile] = useState({});
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileBusy, setProfileBusy] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
+  const [plans, setPlans] = useState([]);
   const [creationOpen, setCreationOpen] = useState(false);
   const [customMoves, setCustomMoves] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -1631,6 +1633,7 @@ function App() {
             setRecords(prMigrate(data.records || {}));
             setCustomMoves(data.customMoves || []);
             setSessions(data.sessions || []);
+            setPlans(data.plans || []);
             setProfile(data.profile || {});
           } else {
             // ancien format { blocks, templates, doneDays } → migration
@@ -1680,7 +1683,8 @@ function App() {
           records,
           profile,
           customMoves,
-          sessions
+          sessions,
+          plans
         }));
         setSaveStatus("saved");
         if (role === "coach") {
@@ -1698,7 +1702,7 @@ function App() {
       }
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [programs, programData, activeId, templates, templateCategories, records, profile, customMoves, sessions, loaded]);
+  }, [programs, programData, activeId, templates, templateCategories, records, profile, customMoves, sessions, plans, loaded]);
   const monday = mondayOf(weekOffset);
   const weekDates = Array.from({
     length: 7
@@ -1946,6 +1950,77 @@ function App() {
     if (role === "coach") loadRequests();
     if (role === "client") loadCoaches();
   }, [role]);
+
+  const savePlan = (p) => setPlans((x) => (x.some((y) => y.id === p.id) ? x.map((y) => (y.id === p.id ? p : y)) : [...x, p]));
+  const deletePlan = (id) => setPlans((x) => x.filter((p) => p.id !== id));
+  const duplicatePlan = (p) => {
+    const c = JSON.parse(JSON.stringify(p));
+    c.id = "pl" + Math.random().toString(36).slice(2, 9);
+    c.name = p.name + " (copie)";
+    setPlans((x) => [...x, c]);
+  };
+  const planFromWeek = () => {
+    const days = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] };
+    weekDates.forEach((d, i) => {
+      days[i + 1] = (blocks[keyOf(d)] || []).map((b) => ({
+        title: b.title || "",
+        content: b.content || "",
+        color: b.color || 0,
+        tip: b.tip || "",
+        courseName: b.courseName || ""
+      }));
+    });
+    return { id: "pl" + Math.random().toString(36).slice(2, 9), name: activeName + " — semaine type", weeks: [{ days }] };
+  };
+  const assignPlan = async (plan, clientIds, startStr) => {
+    setAssignError("");
+    try {
+      const uid = await myUid();
+      const st = new Date(startStr + "T00:00:00");
+      const g = (st.getDay() + 6) % 7;
+      st.setDate(st.getDate() - g);
+      const bl = {};
+      plan.weeks.forEach((w, wi) => {
+        [1, 2, 3, 4, 5, 6, 7].forEach((d) => {
+          const list = w.days[d] || [];
+          if (!list.length) return;
+          const date = addDays(st, wi * 7 + (d - 1));
+          const cids = {};
+          bl[keyOf(date)] = list.map((b) => {
+            const cn = b.courseName || "";
+            if (cn && !cids[cn]) cids[cn] = "c" + Math.random().toString(36).slice(2, 9);
+            const nb = {
+              id: newId(),
+              title: b.title || "Bloc",
+              content: b.content || "",
+              color: b.color || 0,
+              tip: b.tip || ""
+            };
+            if (cn) {
+              nb.courseId = cids[cn];
+              nb.courseName = cn;
+            }
+            return nb;
+          });
+        });
+      });
+      for (const cid of clientIds) {
+        const res = await supa.from("client_programs").upsert({
+          coach_id: uid,
+          client_id: cid,
+          program_id: "plan:" + plan.id,
+          name: plan.name,
+          data: { blocks: bl, doneDays: {}, cycles: [] },
+          published: true,
+          updated_at: new Date().toISOString()
+        });
+        if (res && res.error) throw res.error;
+      }
+      setPlansOpen(false);
+    } catch (e) {
+      setAssignError("Impossible de donner le plan : " + ((e && e.message) || "erreur") + ". Vérifie le script SQL « client_programs ».");
+    }
+  };
 
   const addCustomMove = (m) =>
     setCustomMoves((x) => [...x, { id: "m" + Math.random().toString(36).slice(2, 9), name: m.name.trim(), group: (m.group || "Mes mouvements").trim(), unit: m.unit || "" }]);
@@ -2590,6 +2665,17 @@ function App() {
     },
     onClose: () => setProfileOpen(false)
   });
+  const plansOverlay = plansOpen && /*#__PURE__*/React.createElement(PlansPage, {
+    plans: plans,
+    athletes: athletes,
+    assignError: assignError,
+    onSave: savePlan,
+    onDelete: deletePlan,
+    onDuplicate: duplicatePlan,
+    onFromWeek: planFromWeek,
+    onAssign: assignPlan,
+    onClose: () => setPlansOpen(false)
+  });
   const creationOverlay = creationOpen && /*#__PURE__*/React.createElement(CreationPage, {
     custom: customMoves,
     sessions: sessions,
@@ -2826,11 +2912,14 @@ function App() {
   }, /*#__PURE__*/React.createElement(Sparkles, {
     size: 16
   }), " Créateur"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setCreationOpen(true),
+    onClick: () => {
+      setPlansOpen(true);
+      loadAthletes();
+    },
     className: "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
-  }, /*#__PURE__*/React.createElement(FilePlus, {
+  }, /*#__PURE__*/React.createElement(Bookmark, {
     size: 16
-  }), " Création"), role === "coach" && /*#__PURE__*/React.createElement("button", {
+  }), " Plans"), role === "coach" && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setAssignOpen(true);
       loadAthletes();
@@ -3353,7 +3442,7 @@ function App() {
       setAssignOpen(false);
       setAssignError("");
     }
-  }), recordsOverlay, usersOverlay, creationOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
+  }), recordsOverlay, usersOverlay, creationOverlay, plansOverlay, athletesOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
     className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
@@ -6889,6 +6978,383 @@ function CreationPage({
       background: "#111"
     }
   }, "Ajouter")))) : null);
+}
+const PLAN_DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+function planEmpty() {
+  return {
+    id: "pl" + Math.random().toString(36).slice(2, 9),
+    name: "",
+    weeks: [{
+      days: {
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+        7: []
+      }
+    }]
+  };
+}
+function PlanBlockCard({
+  b,
+  onChange,
+  onDelete,
+  onMove
+}) {
+  const c = COLORS[b.color] || COLORS[0];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl border border-slate-200 p-2.5 mb-2",
+    style: {
+      background: c.bg
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 mb-1.5"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: b.title,
+    onChange: e => onChange({
+      title: e.target.value
+    }),
+    placeholder: "Titre (ex. STRENGTH)",
+    className: "flex-1 px-2 py-1.5 text-sm font-semibold border border-slate-200 rounded-lg bg-white min-w-0"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onMove(-1),
+    className: "p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 shrink-0"
+  }, /*#__PURE__*/React.createElement(ArrowUp, {
+    size: 13
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onMove(1),
+    className: "p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 shrink-0"
+  }, /*#__PURE__*/React.createElement(ArrowDown, {
+    size: 13
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: onDelete,
+    className: "p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-500 shrink-0"
+  }, /*#__PURE__*/React.createElement(Trash2, {
+    size: 13
+  }))), /*#__PURE__*/React.createElement("textarea", {
+    value: b.content,
+    onChange: e => onChange({
+      content: e.target.value
+    }),
+    rows: 3,
+    placeholder: "Contenu — ex. 5 × 5 @70 Back Squat",
+    className: "w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white mb-1.5"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: b.tip || "",
+    onChange: e => onChange({
+      tip: e.target.value
+    }),
+    placeholder: "Coaching tip (optionnel)",
+    className: "w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white mb-1.5"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: b.courseName || "",
+    onChange: e => onChange({
+      courseName: e.target.value
+    }),
+    placeholder: "Cours (WOD…)",
+    className: "w-28 px-2 py-1 text-[11px] border border-slate-200 rounded-lg bg-white"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1"
+  }, COLORS.map((cc, ci) => /*#__PURE__*/React.createElement("button", {
+    key: ci,
+    onClick: () => onChange({
+      color: ci
+    }),
+    className: "w-4 h-4 rounded-full border-2",
+    style: {
+      background: cc.bar,
+      borderColor: b.color === ci ? "#0F172A" : "transparent"
+    }
+  })))));
+}
+function PlanEditor({
+  draft,
+  onChange,
+  onSave,
+  onCancel
+}) {
+  const [wi, setWi] = useState(0);
+  const [openDay, setOpenDay] = useState(1);
+  const w = draft.weeks[Math.min(wi, draft.weeks.length - 1)];
+  const setDay = (d, list) => {
+    const weeks = draft.weeks.map((x, i) => i === wi ? {
+      ...x,
+      days: {
+        ...x.days,
+        [d]: list
+      }
+    } : x);
+    onChange({
+      ...draft,
+      weeks
+    });
+  };
+  const addBlock = d => setDay(d, [...(w.days[d] || []), {
+    title: "",
+    content: "",
+    color: 2,
+    tip: "",
+    courseName: "WOD"
+  }]);
+  const addWeek = () => onChange({
+    ...draft,
+    weeks: [...draft.weeks, {
+      days: {
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+        7: []
+      }
+    }]
+  });
+  const delWeek = () => {
+    if (draft.weeks.length <= 1) return;
+    const weeks = draft.weeks.filter((_, i) => i !== wi);
+    onChange({
+      ...draft,
+      weeks
+    });
+    setWi(0);
+  };
+  const dupWeek = () => onChange({
+    ...draft,
+    weeks: [...draft.weeks, JSON.parse(JSON.stringify(w))]
+  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    value: draft.name,
+    onChange: e => onChange({
+      ...draft,
+      name: e.target.value
+    }),
+    placeholder: "Nom du plan — ex. Force Back Squat 4 semaines",
+    className: "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-slate-300"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 overflow-x-auto pb-2 mb-1"
+  }, draft.weeks.map((_, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setWi(i),
+    className: "px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 " + (wi === i ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600")
+  }, "S", i + 1)), /*#__PURE__*/React.createElement("button", {
+    onClick: addWeek,
+    className: "px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 shrink-0"
+  }, "+ Semaine"), /*#__PURE__*/React.createElement("button", {
+    onClick: dupWeek,
+    className: "px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 shrink-0"
+  }, "Dupliquer S", wi + 1), draft.weeks.length > 1 ? /*#__PURE__*/React.createElement("button", {
+    onClick: delWeek,
+    className: "px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-500 shrink-0"
+  }, "Suppr. S", wi + 1) : null), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mb-3"
+  }, "Aucune date : J1 = lundi. Le plan s'alignera sur la semaine de l'athlète au moment où tu le lui donnes."), [1, 2, 3, 4, 5, 6, 7].map(d => {
+    const list = w.days[d] || [];
+    const open = openDay === d;
+    return /*#__PURE__*/React.createElement("div", {
+      key: d,
+      className: "mb-2 rounded-xl border border-slate-200"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setOpenDay(open ? 0 : d),
+      className: "w-full flex items-center justify-between px-3 py-2.5 text-left"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold text-slate-800 text-sm"
+    }, "J", d, " · ", PLAN_DAYS[d - 1]), /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-slate-400"
+    }, list.length ? list.length + " bloc" + (list.length > 1 ? "s" : "") : "repos")), open ? /*#__PURE__*/React.createElement("div", {
+      className: "px-3 pb-3"
+    }, list.map((b, i) => /*#__PURE__*/React.createElement(PlanBlockCard, {
+      key: i,
+      b: b,
+      onChange: patch => setDay(d, list.map((x, k) => k === i ? {
+        ...x,
+        ...patch
+      } : x)),
+      onDelete: () => setDay(d, list.filter((_, k) => k !== i)),
+      onMove: dir => {
+        const j = i + dir;
+        if (j < 0 || j >= list.length) return;
+        const arr = list.slice();
+        const t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+        setDay(d, arr);
+      }
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: () => addBlock(d),
+      className: "w-full py-2 rounded-lg border border-dashed border-slate-300 text-xs text-slate-500 hover:bg-slate-50"
+    }, "+ Ajouter un bloc")) : null);
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2 mt-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    className: "px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100"
+  }, "Annuler"), /*#__PURE__*/React.createElement("button", {
+    onClick: onSave,
+    className: "px-4 py-2 text-sm font-semibold rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Enregistrer")));
+}
+function PlansPage({
+  plans,
+  athletes,
+  onSave,
+  onDelete,
+  onDuplicate,
+  onFromWeek,
+  onAssign,
+  assignError,
+  onClose
+}) {
+  const [draft, setDraft] = useState(null);
+  const [assignFor, setAssignFor] = useState(null);
+  const [picked, setPicked] = useState({});
+  const [start, setStart] = useState(() => {
+    const d = new Date();
+    const g = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - g);
+    return d.toISOString().slice(0, 10);
+  });
+  const [busy, setBusy] = useState(false);
+  const nbBlocks = p => p.weeks.reduce((a, w) => a + [1, 2, 3, 4, 5, 6, 7].reduce((s, d) => s + (w.days[d] || []).length, 0), 0);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between z-10"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Bookmark, {
+    size: 18,
+    className: "text-indigo-500"
+  }), " Programmations types"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded hover:bg-slate-100 text-slate-500"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 20
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-2xl mx-auto px-4 py-4 pb-28"
+  }, draft ? /*#__PURE__*/React.createElement(PlanEditor, {
+    draft: draft,
+    onChange: setDraft,
+    onCancel: () => setDraft(null),
+    onSave: () => {
+      if (!draft.name.trim()) return;
+      onSave(draft);
+      setDraft(null);
+    }
+  }) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 mb-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDraft(planEmpty()),
+    className: "py-2.5 rounded-lg text-sm font-semibold text-white",
+    style: {
+      background: "#4f46e5"
+    }
+  }, "+ Nouveau plan"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDraft(onFromWeek()),
+    className: "py-2.5 rounded-lg text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50"
+  }, "Depuis la semaine en cours")), !plans || plans.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-10 text-center leading-relaxed"
+  }, "Aucune programmation type.", /*#__PURE__*/React.createElement("br", null), "Crée un plan J1→J7 (sans dates) et donne-le à un athlète quand tu veux.") : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, plans.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.id,
+    className: "rounded-xl border border-slate-200 p-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-semibold text-slate-800 truncate"
+  }, p.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-400"
+  }, p.weeks.length, " semaine", p.weeks.length > 1 ? "s" : "", " · ", nbBlocks(p), " bloc", nbBlocks(p) > 1 ? "s" : "")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1.5 shrink-0"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAssignFor(assignFor === p.id ? null : p.id);
+      setPicked({});
+    },
+    className: "px-3 py-1.5 text-xs font-semibold rounded-lg text-white",
+    style: {
+      background: "#111"
+    }
+  }, "Donner"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDraft(JSON.parse(JSON.stringify(p))),
+    className: "p-1.5 rounded-lg border border-slate-200 text-slate-500"
+  }, /*#__PURE__*/React.createElement(Pencil, {
+    size: 14
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDuplicate(p),
+    className: "p-1.5 rounded-lg border border-slate-200 text-slate-500"
+  }, /*#__PURE__*/React.createElement(Copy, {
+    size: 14
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDelete(p.id),
+    className: "p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-500"
+  }, /*#__PURE__*/React.createElement(Trash2, {
+    size: 14
+  })))), assignFor === p.id ? /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 pt-3 border-t border-slate-100"
+  }, athletes === null ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-3 text-center"
+  }, "Chargement…") : athletes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 py-3 text-center"
+  }, "Aucun athlète rattaché.") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-medium text-slate-500 mb-1.5"
+  }, "Athlètes"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5 mb-3"
+  }, athletes.map(a => /*#__PURE__*/React.createElement("button", {
+    key: a.id,
+    onClick: () => setPicked(x => ({
+      ...x,
+      [a.id]: !x[a.id]
+    })),
+    className: "w-full flex items-center gap-2 p-2 rounded-lg border text-left " + (picked[a.id] ? "border-indigo-500 bg-indigo-50" : "border-slate-200")
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    src: a.avatar,
+    name: a.name || a.email,
+    size: 28
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-slate-700 flex-1 truncate"
+  }, a.name || a.email), picked[a.id] ? /*#__PURE__*/React.createElement(Check, {
+    size: 15,
+    className: "text-indigo-600"
+  }) : null))), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-medium text-slate-500 mb-1"
+  }, "Départ (lundi)"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: start,
+    onChange: e => setStart(e.target.value),
+    className: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg mb-3"
+  }), assignError ? /*#__PURE__*/React.createElement("div", {
+    className: "mb-2 rounded-lg px-3 py-2 text-[12px]",
+    style: {
+      background: "#FEF2F2",
+      border: "1px solid #FECACA",
+      color: "#B91C1C"
+    }
+  }, assignError) : null, /*#__PURE__*/React.createElement("button", {
+    disabled: busy || !Object.keys(picked).some(k => picked[k]),
+    onClick: async () => {
+      setBusy(true);
+      await onAssign(p, Object.keys(picked).filter(k => picked[k]), start);
+      setBusy(false);
+      setAssignFor(null);
+    },
+    className: "w-full py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50",
+    style: {
+      background: "#059669"
+    }
+  }, busy ? "…" : "Donner et publier"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-2 leading-relaxed"
+  }, "J1 sera posé sur ce lundi. L'athlète verra sa semaine en cours automatiquement."))) : null))))));
 }
 function CoachPicker({
   coaches,
