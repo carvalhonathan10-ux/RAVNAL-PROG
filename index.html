@@ -4645,48 +4645,594 @@ function prBest(entries, unit, rm) {
   });
   return best;
 }
-function prScore(name, unit, entries, profile) {
-  const best = prBest(entries, unit, unit === "kg" ? "1RM" : null);
-  if (!best) return null;
-  const n = prToNumber(best.value, unit);
-  if (n === null || n <= 0) return null;
-  const bw = profile && parseFloat(profile.weight) || 80;
-  const sexF = profile && profile.sex === "F" ? 0.78 : 1;
-  if (REF_LIFT[name] !== undefined) {
-    const ref = REF_LIFT[name] * bw * sexF;
-    return Math.max(0, Math.min(100, n / ref * 100));
+// ---- Modèle "centile communauté" (esprit Strivee) ----
+const PR_STATS = {
+  "Back Squat": {
+    k: "kg",
+    m: 145,
+    sd: 24
+  },
+  "Front Squat": {
+    k: "kg",
+    m: 120.2,
+    sd: 20.8
+  },
+  "Overhead Squat": {
+    k: "kg",
+    m: 87,
+    sd: 17.6
+  },
+  "Clean": {
+    k: "kg",
+    m: 96.9,
+    sd: 17.6
+  },
+  "Power Clean": {
+    k: "kg",
+    m: 85.7,
+    sd: 16
+  },
+  "Squat Clean": {
+    k: "kg",
+    m: 96.9,
+    sd: 17.6
+  },
+  "Hang Power Clean": {
+    k: "kg",
+    m: 78.3,
+    sd: 14.4
+  },
+  "Hang Squat Clean": {
+    k: "kg",
+    m: 85.7,
+    sd: 16
+  },
+  "Muscle Clean": {
+    k: "kg",
+    m: 63.4,
+    sd: 12
+  },
+  "Snatch": {
+    k: "kg",
+    m: 74.6,
+    sd: 14.4
+  },
+  "Power Snatch": {
+    k: "kg",
+    m: 63.4,
+    sd: 12.8
+  },
+  "Squat Snatch": {
+    k: "kg",
+    m: 74.6,
+    sd: 14.4
+  },
+  "Hang Power Snatch": {
+    k: "kg",
+    m: 58.2,
+    sd: 12
+  },
+  "Hang Squat Snatch": {
+    k: "kg",
+    m: 67.1,
+    sd: 12.8
+  },
+  "Muscle Snatch": {
+    k: "kg",
+    m: 48.5,
+    sd: 9.6
+  },
+  "Snatch Balance": {
+    k: "kg",
+    m: 70.8,
+    sd: 14.4
+  },
+  "Bench Press": {
+    k: "kg",
+    m: 99.5,
+    sd: 20
+  },
+  "Shoulder Press": {
+    k: "kg",
+    m: 62.2,
+    sd: 10.4
+  },
+  "Push Press": {
+    k: "kg",
+    m: 78.7,
+    sd: 13.6
+  },
+  "Thruster": {
+    k: "kg",
+    m: 87,
+    sd: 14.4
+  },
+  "Cluster": {
+    k: "kg",
+    m: 78.7,
+    sd: 13.6
+  },
+  "Push Jerk": {
+    k: "kg",
+    m: 82,
+    sd: 16
+  },
+  "Split Jerk": {
+    k: "kg",
+    m: 89.5,
+    sd: 17.6
+  },
+  "Deadlift": {
+    k: "kg",
+    m: 178.2,
+    sd: 28
+  },
+  "Sumo Deadlift": {
+    k: "kg",
+    m: 178.2,
+    sd: 28
+  },
+  "Snatch Grip Deadlift": {
+    k: "kg",
+    m: 145,
+    sd: 24
+  },
+  "Clean & Jerk": {
+    k: "kg",
+    m: 93.2,
+    sd: 16.8
+  },
+  "Power Clean & Jerk": {
+    k: "kg",
+    m: 82,
+    sd: 15.2
+  },
+  "Weighted Dip": {
+    k: "kg",
+    m: 41.4,
+    sd: 12
+  },
+  "Weighted Pull-up": {
+    k: "kg",
+    m: 33.2,
+    sd: 10.4
+  },
+  "Bar Muscle-ups": {
+    k: "reps",
+    m: 5.4,
+    sd: 5
+  },
+  "Ring Muscle-ups": {
+    k: "reps",
+    m: 6,
+    sd: 4
+  },
+  "Chest-to-Bar": {
+    k: "reps",
+    m: 20,
+    sd: 10
+  },
+  "Chest-to-Bar Strict": {
+    k: "reps",
+    m: 8,
+    sd: 4
+  },
+  "Pull-ups": {
+    k: "reps",
+    m: 25,
+    sd: 12
+  },
+  "Pull-ups Strict": {
+    k: "reps",
+    m: 12,
+    sd: 6
+  },
+  "Push-ups": {
+    k: "reps",
+    m: 45,
+    sd: 20
+  },
+  "Ring Push-ups": {
+    k: "reps",
+    m: 20,
+    sd: 10
+  },
+  "Dips": {
+    k: "reps",
+    m: 25,
+    sd: 12
+  },
+  "Ring Dips": {
+    k: "reps",
+    m: 14,
+    sd: 7
+  },
+  "Ring Dips Strict": {
+    k: "reps",
+    m: 9,
+    sd: 5
+  },
+  "HSPU Kipping": {
+    k: "reps",
+    m: 18,
+    sd: 10
+  },
+  "HSPU Strict": {
+    k: "reps",
+    m: 8,
+    sd: 5
+  },
+  "Pistols": {
+    k: "reps",
+    m: 24,
+    sd: 12
+  },
+  "Toes-to-bar": {
+    k: "reps",
+    m: 25,
+    sd: 12
+  },
+  "Double Unders": {
+    k: "reps",
+    m: 70,
+    sd: 45
+  },
+  "Handstand Walk": {
+    k: "reps",
+    m: 25,
+    sd: 20
+  },
+  "400m Run": {
+    k: "time",
+    m: 80,
+    sd: 12
+  },
+  "800m Run": {
+    k: "time",
+    m: 175,
+    sd: 25
+  },
+  "1km Run": {
+    k: "time",
+    m: 230,
+    sd: 35
+  },
+  "1600m Run": {
+    k: "time",
+    m: 390,
+    sd: 55
+  },
+  "2km Run": {
+    k: "time",
+    m: 500,
+    sd: 70
+  },
+  "3km Run": {
+    k: "time",
+    m: 780,
+    sd: 110
+  },
+  "5km Run": {
+    k: "time",
+    m: 1380,
+    sd: 200
+  },
+  "10km Run": {
+    k: "time",
+    m: 2900,
+    sd: 420
+  },
+  "Half Marathon Run": {
+    k: "time",
+    m: 6600,
+    sd: 900
+  },
+  "Marathon Run": {
+    k: "time",
+    m: 14400,
+    sd: 2100
+  },
+  "250m Row": {
+    k: "time",
+    m: 48,
+    sd: 6
+  },
+  "500m Row": {
+    k: "time",
+    m: 100,
+    sd: 11
+  },
+  "1000m Row": {
+    k: "time",
+    m: 210,
+    sd: 22
+  },
+  "2000m Row": {
+    k: "time",
+    m: 445,
+    sd: 45
+  },
+  "5km Row": {
+    k: "time",
+    m: 1200,
+    sd: 120
+  },
+  "10km Row": {
+    k: "time",
+    m: 2500,
+    sd: 250
+  },
+  "250m Ski": {
+    k: "time",
+    m: 52,
+    sd: 7
+  },
+  "500m Ski": {
+    k: "time",
+    m: 108,
+    sd: 12
+  },
+  "1000m Ski": {
+    k: "time",
+    m: 228,
+    sd: 25
+  },
+  "2000m Ski": {
+    k: "time",
+    m: 480,
+    sd: 50
+  },
+  "25 Cal": {
+    k: "time",
+    m: 65,
+    sd: 10
+  },
+  "50 Cal": {
+    k: "time",
+    m: 145,
+    sd: 22
+  },
+  "100 Cal": {
+    k: "time",
+    m: 310,
+    sd: 45
+  },
+  "30 Burpees": {
+    k: "time",
+    m: 90,
+    sd: 18
+  },
+  "50 Burpees": {
+    k: "time",
+    m: 165,
+    sd: 30
+  },
+  "100 Burpees": {
+    k: "time",
+    m: 370,
+    sd: 65
+  },
+  "Fran": {
+    k: "time",
+    m: 270,
+    sd: 80
+  },
+  "Grace": {
+    k: "time",
+    m: 210,
+    sd: 65
+  },
+  "Isabel": {
+    k: "time",
+    m: 240,
+    sd: 75
+  },
+  "Amanda": {
+    k: "time",
+    m: 360,
+    sd: 110
+  },
+  "Diane": {
+    k: "time",
+    m: 330,
+    sd: 120
+  },
+  "Elizabeth": {
+    k: "time",
+    m: 350,
+    sd: 110
+  },
+  "Helen": {
+    k: "time",
+    m: 570,
+    sd: 90
+  },
+  "Jackie": {
+    k: "time",
+    m: 450,
+    sd: 75
+  },
+  "Karen": {
+    k: "time",
+    m: 510,
+    sd: 120
+  },
+  "Nancy": {
+    k: "time",
+    m: 840,
+    sd: 150
+  },
+  "Annie": {
+    k: "time",
+    m: 480,
+    sd: 120
+  },
+  "Angie": {
+    k: "time",
+    m: 1260,
+    sd: 240
+  },
+  "Barbara": {
+    k: "time",
+    m: 1560,
+    sd: 240
+  },
+  "Murph": {
+    k: "time",
+    m: 3201,
+    sd: 600
+  },
+  "DT": {
+    k: "time",
+    m: 720,
+    sd: 180
+  },
+  "Filthy Fifty": {
+    k: "time",
+    m: 1500,
+    sd: 300
+  },
+  "Linda": {
+    k: "time",
+    m: 1500,
+    sd: 350
+  },
+  "Chad": {
+    k: "time",
+    m: 3300,
+    sd: 700
+  },
+  "Fight Gone Bad": {
+    k: "reps",
+    m: 320,
+    sd: 55
+  },
+  "The Chief": {
+    k: "reps",
+    m: 100,
+    sd: 25
+  },
+  "Cindy": {
+    k: "reps",
+    m: 18,
+    sd: 5
   }
-  if (REF_GYM[name] !== undefined) {
-    const ref = REF_GYM[name] * (profile && profile.sex === "F" ? 0.85 : 1);
-    return Math.max(0, Math.min(100, n / ref * 100));
-  }
-  if (REF_CARDIO[name] !== undefined) {
-    const ref = REF_CARDIO[name] * (profile && profile.sex === "F" ? 1.12 : 1);
-    return Math.max(0, Math.min(100, ref / n * 100));
-  }
-  return null;
+};
+const PR_AXES = [{
+  id: "haltero",
+  label: "Haltéro",
+  desc: "Mouvements olympiques",
+  items: ["Snatch", "Squat Snatch", "Power Snatch", "Hang Power Snatch", "Hang Squat Snatch", "Muscle Snatch", "Snatch Balance", "Clean", "Squat Clean", "Power Clean", "Hang Power Clean", "Hang Squat Clean", "Muscle Clean", "Clean & Jerk", "Power Clean & Jerk", "Push Jerk", "Split Jerk"]
+}, {
+  id: "force",
+  label: "Force",
+  desc: "Charges maximales",
+  items: ["Back Squat", "Front Squat", "Overhead Squat", "Deadlift", "Sumo Deadlift", "Snatch Grip Deadlift", "Bench Press", "Shoulder Press", "Push Press", "Thruster", "Cluster", "Weighted Dip", "Weighted Pull-up"]
+}, {
+  id: "vitesse",
+  label: "Vitesse",
+  desc: "Efforts courts et intenses",
+  items: ["400m Run", "250m Row", "500m Row", "250m Ski", "500m Ski", "25 Cal", "30 Burpees", "Fran", "Grace", "Isabel", "Diane"]
+}, {
+  id: "endurance",
+  label: "Endurance",
+  desc: "Efforts moyens",
+  items: ["800m Run", "1km Run", "1600m Run", "2km Run", "1000m Row", "2000m Row", "1000m Ski", "2000m Ski", "50 Cal", "50 Burpees", "Helen", "Jackie", "Karen", "Annie", "Elizabeth", "Amanda"]
+}, {
+  id: "long",
+  label: "Long",
+  desc: "Efforts longs",
+  items: ["3km Run", "5km Run", "10km Run", "Half Marathon Run", "Marathon Run", "5km Row", "10km Row", "100 Cal", "100 Burpees", "Murph", "Chad", "Angie", "Barbara", "Filthy Fifty", "Nancy"]
+}, {
+  id: "bodyweight",
+  label: "Bodyweight",
+  desc: "WODs sans poids",
+  items: ["Bar Muscle-ups", "Ring Muscle-ups", "Chest-to-Bar", "Chest-to-Bar Strict", "Pull-ups", "Pull-ups Strict", "Push-ups", "Ring Push-ups", "Dips", "Ring Dips", "Ring Dips Strict", "HSPU Kipping", "HSPU Strict", "Pistols", "Toes-to-bar", "Double Unders", "Handstand Walk", "Cindy", "Angie", "Barbara", "The Chief"]
+}, {
+  id: "lourd",
+  label: "Lourd",
+  desc: "WODs avec charges lourdes",
+  items: ["DT", "Linda", "Diane", "Elizabeth", "Grace", "Isabel", "Amanda"]
+}, {
+  id: "leger",
+  label: "Léger",
+  desc: "WODs avec charges légères",
+  items: ["Fran", "Karen", "Nancy", "Jackie", "Helen", "Fight Gone Bad"]
+}];
+const PR_AXIS_EX = {
+  haltero: ["Snatch", "Clean & Jerk", "Squat Clean"],
+  force: ["Back Squat", "Deadlift", "Bench Press"],
+  vitesse: ["Run 400m", "Row 250m", "Fran"],
+  endurance: ["Run 2km", "Row 2000m", "Helen"],
+  long: ["Run 5km", "Row 5km", "Murph"],
+  bodyweight: ["Cindy", "Annie", "100 Burpees FOR TIME"],
+  lourd: ["DT", "Linda", "Diane"],
+  leger: ["Fran", "Karen", "Jackie"]
+};
+function _erf(x) {
+  const s = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const a1 = 0.254829592,
+    a2 = -0.284496736,
+    a3 = 1.421413741,
+    a4 = -1.453152027,
+    a5 = 1.061405429,
+    p = 0.3275911;
+  const t = 1 / (1 + p * x);
+  const y = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+  return s * y;
 }
-function prFamilyScore(famId, records, profile) {
-  const fam = PR_CATALOG.find(f => f.id === famId);
-  if (!fam) return null;
-  const scores = [];
-  fam.groups.forEach(g => {
-    g.items.forEach(name => {
-      const s = prScore(name, g.unit, records[name], profile);
-      if (s !== null) scores.push(s);
+function _cdf(z) {
+  return 0.5 * (1 + _erf(z / Math.SQRT2));
+}
+function prScore(name, unit, entries, profile) {
+  const st = PR_STATS[name];
+  if (!st) return null;
+  const u = unit || (PR_INDEX[name.toLowerCase()] ? PR_INDEX[name.toLowerCase()].unit : "");
+  const best = prBest(entries, u, u === "kg" ? "1RM" : null);
+  if (!best) return null;
+  const n = prToNumber(best.value, u);
+  if (n === null || n <= 0) return null;
+  const female = profile && profile.sex === "F";
+  let z;
+  if (st.k === "kg") {
+    const m = st.m * (female ? 0.72 : 1);
+    z = (n - m) / st.sd;
+  } else if (st.k === "time") {
+    const m = st.m * (female ? 1.12 : 1);
+    z = (m - n) / st.sd;
+  } else {
+    const m = st.m * (female ? 0.85 : 1);
+    z = (n - m) / st.sd;
+  }
+  return Math.max(1, Math.min(99, _cdf(z) * 100));
+}
+function prAxisScores(records, profile) {
+  const out = {};
+  PR_AXES.forEach(ax => {
+    const sc = [];
+    ax.items.forEach(nm => {
+      const info = PR_INDEX[nm.toLowerCase()];
+      const s = prScore(nm, info ? info.unit : "", (records || {})[nm], profile);
+      if (s !== null) sc.push(s);
     });
+    out[ax.id] = sc.length ? sc.reduce((a, b) => a + b, 0) / sc.length : null;
   });
-  if (!scores.length) return null;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+  return out;
 }
 function prFitLevel(records, profile) {
-  const parts = ["lift", "gym", "cardio"].map(f => prFamilyScore(f, records, profile));
-  const ok = parts.filter(p => p !== null);
+  const ax = prAxisScores(records || {}, profile);
+  const avg = ids => {
+    const v = ids.map(i => ax[i]).filter(x => x !== null && x !== undefined);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  };
+  const all = PR_AXES.map(a => ax[a.id]).filter(x => x !== null && x !== undefined);
   return {
-    lift: parts[0],
-    gym: parts[1],
-    cardio: parts[2],
-    total: ok.length ? ok.reduce((a, b) => a + b, 0) / ok.length : null
+    axes: ax,
+    lift: avg(["haltero"]),
+    gym: avg(["bodyweight"]),
+    cardio: avg(["vitesse", "endurance", "long"]),
+    total: all.length ? all.reduce((a, b) => a + b, 0) / all.length : null
   };
 }
 // Migration ancien format -> nouveau (clé = nom du mouvement)
@@ -5224,6 +5770,117 @@ function RecordsPage({
     size: 16
   })) : null)));
 }
+function FitLevelPage({
+  records,
+  profile,
+  onBack
+}) {
+  const f = prFitLevel(records || {}, profile || {});
+  const ax = f.axes;
+  const withVal = PR_AXES.filter(a => ax[a.id] !== null && ax[a.id] !== undefined);
+  let weak = null,
+    strong = null;
+  withVal.forEach(a => {
+    if (!weak || ax[a.id] < ax[weak.id]) weak = a;
+    if (!strong || ax[a.id] > ax[strong.id]) strong = a;
+  });
+  const col = v => v === null || v === undefined ? "#CBD5E1" : v >= 70 ? "#5EC5A6" : v >= 50 ? "#FBBF24" : "#FB923C";
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-white overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-xl mx-auto px-4 pb-24"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between pt-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    className: "w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20
+  })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-xl font-extrabold text-slate-900 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 18
+  }), " FIT LEVEL"), /*#__PURE__*/React.createElement("div", {
+    className: "w-10"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center py-6"
+  }, /*#__PURE__*/React.createElement(PrRing, {
+    value: f.total,
+    size: 190
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 overflow-x-auto pb-2"
+  }, PR_AXES.map(a => {
+    const v = ax[a.id];
+    const na = v === null || v === undefined;
+    return /*#__PURE__*/React.createElement("div", {
+      key: a.id,
+      className: "flex flex-col items-center shrink-0",
+      style: {
+        width: 78
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[15px] font-bold mb-1",
+      style: {
+        color: na ? "#94A3B8" : col(v)
+      }
+    }, na ? "NA" : Math.round(v), na ? null : /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px]"
+    }, " %")), /*#__PURE__*/React.createElement("div", {
+      className: "w-3.5 rounded-full flex items-end",
+      style: {
+        height: 150,
+        background: "#F1F5F9"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-3.5 rounded-full",
+      style: {
+        height: na ? 0 : Math.max(6, v / 100 * 150),
+        background: col(v)
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] font-semibold text-slate-600 mt-2 text-center"
+    }, a.label));
+  })), weak && strong ? /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl p-4 mt-6",
+    style: {
+      background: "#F1F5F9"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-3 text-center"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold mb-2",
+    style: {
+      color: "#F08C8C"
+    }
+  }, "Point faible"), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-slate-800"
+  }, weak.label), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-500 mb-2"
+  }, weak.desc), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-slate-700 text-sm"
+  }, "Exercices type :"), (PR_AXIS_EX[weak.id] || []).map((x, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "text-sm text-slate-500"
+  }, x))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold mb-2",
+    style: {
+      color: "#5EC5A6"
+    }
+  }, "Point fort"), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-slate-800"
+  }, strong.label), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-500 mb-2"
+  }, strong.desc), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-slate-700 text-sm"
+  }, "WODs type :"), (PR_AXIS_EX[strong.id] || []).map((x, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "text-sm text-slate-500"
+  }, x))))) : /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-slate-400 text-sm py-8"
+  }, "Enregistre des records pour voir tes points forts et faibles."), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-5 leading-relaxed"
+  }, "Chaque score est un centile : il compare ta performance à une population de référence CrossFit. 50 % = niveau médian. NA = aucun record dans cette catégorie.")));
+}
 function ProfilePage({
   profile,
   records,
@@ -5232,6 +5889,7 @@ function ProfilePage({
   onClose
 }) {
   const [p, setP] = useState(profile || {});
+  const [more, setMore] = useState(false);
   const fit = prFitLevel(records || {}, p);
   const initials = (p.name || email || "?").slice(0, 2).toUpperCase();
   const field = (label, key, type, ph) => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -5246,6 +5904,11 @@ function ProfilePage({
     placeholder: ph || "—",
     className: "w-full text-slate-500 text-[15px] outline-none border-b border-transparent focus:border-slate-300 pb-1"
   }));
+  if (more) return /*#__PURE__*/React.createElement(FitLevelPage, {
+    records: records,
+    profile: p,
+    onBack: () => setMore(false)
+  });
   return /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 bg-white overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
@@ -5289,7 +5952,10 @@ function ProfilePage({
     size: 13
   }), " FIT LEVEL"), /*#__PURE__*/React.createElement(PrRing, {
     value: fit.total
-  }))), /*#__PURE__*/React.createElement("p", {
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMore(true),
+    className: "text-sm text-slate-400 hover:text-slate-600 mt-1"
+  }, "Voir plus"))), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-400 mt-3 leading-relaxed"
   }, "Calculé à partir de tes records : chaque mouvement est comparé à un barème de référence (ratio du poids de corps pour les levées). Renseigne ton poids et ton sexe pour un calcul juste.")), /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-100 shadow-sm p-4"
